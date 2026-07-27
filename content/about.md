@@ -1,6 +1,7 @@
 ---
 title: "About"
 description: "About Mdk22 Security Write-Ups."
+showToc: false
 url: "/about/"
 ---
 

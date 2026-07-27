@@ -11,7 +11,7 @@ buildExpired = false
 [params]
   author = "Mdk22"
   description = "Evidence-backed web security lab write-ups from authorized educational environments."
-  defaultTheme = "auto"
+  defaultTheme = "dark"
   disableThemeToggle = false
   ShowReadingTime = true
   ShowBreadCrumbs = true
