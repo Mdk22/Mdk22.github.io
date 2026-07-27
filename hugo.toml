@@ -1,0 +1,31 @@
+baseURL = "https://mdk22.github.io/"
+locale = "en-US"
+title = "Mdk22 Security Write-Ups"
+theme = "PaperMod"
+
+enableRobotsTXT = true
+buildDrafts = false
+buildFuture = false
+buildExpired = false
+
+[params]
+  author = "Mdk22"
+  description = "Evidence-backed web security lab write-ups from authorized educational environments."
+  defaultTheme = "auto"
+  disableThemeToggle = false
+  ShowReadingTime = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowToc = true
+  TocOpen = true
+
+[params.homeInfoParams]
+  Title = "Mdk22 Security Write-Ups"
+  Content = "Evidence-backed technical write-ups from authorized web security laboratories and deliberately vulnerable training environments."
+
+[[params.socialIcons]]
+  name = "github"
+  url = "https://github.com/Mdk22"
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
