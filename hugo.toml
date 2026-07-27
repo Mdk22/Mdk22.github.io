@@ -29,3 +29,20 @@ buildExpired = false
 [caches]
   [caches.images]
     dir = ':cacheDir/images'
+[[menus.main]]
+  identifier = "writeups"
+  name = "Write-Ups"
+  url = "/writeups/"
+  weight = 10
+
+[[menus.main]]
+  identifier = "about"
+  name = "About"
+  url = "/about/"
+  weight = 20
+
+[[menus.main]]
+  identifier = "disclosure-policy"
+  name = "Disclosure Policy"
+  url = "/disclosure-policy/"
+  weight = 30
