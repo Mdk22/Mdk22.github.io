@@ -1,0 +1,851 @@
+/* =========================================================
+   MDK22 BLACKSITE DESIGN SYSTEM — PHASE 1
+   Foundation: palette, typography, navigation, cards,
+   article surfaces, evidence images, code and tables.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Core design tokens — Declassified light mode
+   --------------------------------------------------------- */
+
+:root {
+    --gap: 25px;
+    --content-gap: 24px;
+    --nav-width: 1180px;
+    --main-width: 880px;
+    --header-height: 68px;
+    --footer-height: 70px;
+    --radius: 4px;
+
+    --theme: #e9e8e1;
+    --entry: #f3f2eb;
+    --primary: #11171b;
+    --secondary: #59636a;
+    --tertiary: #d4d5ce;
+    --content: #202a30;
+    --code-block-bg: #101519;
+    --code-bg: #dfe1da;
+    --border: #c5c9c2;
+
+    --blacksite-accent: #4d6900;
+    --blacksite-accent-bright: #668b00;
+    --blacksite-cyan: #006a7c;
+    --blacksite-warning: #8a5900;
+    --blacksite-critical: #9b2727;
+
+    --blacksite-grid: rgba(22, 31, 36, 0.035);
+    --blacksite-glow: rgba(77, 105, 0, 0.09);
+    --blacksite-surface: rgba(243, 242, 235, 0.92);
+    --blacksite-shadow: rgba(21, 28, 32, 0.12);
+
+    color-scheme: light;
+}
+
+/* ---------------------------------------------------------
+   2. Core design tokens — Blacksite dark mode
+   --------------------------------------------------------- */
+
+:root[data-theme="dark"] {
+    --theme: #070a0d;
+    --entry: #0c1116;
+    --primary: #dce5e9;
+    --secondary: #84929a;
+    --tertiary: #182129;
+    --content: #bdc8cd;
+    --code-block-bg: #05080a;
+    --code-bg: #10161b;
+    --border: #22303a;
+
+    --blacksite-accent: #b9f227;
+    --blacksite-accent-bright: #d0ff59;
+    --blacksite-cyan: #52d6ff;
+    --blacksite-warning: #ffb020;
+    --blacksite-critical: #ff5757;
+
+    --blacksite-grid: rgba(185, 242, 39, 0.025);
+    --blacksite-glow: rgba(185, 242, 39, 0.08);
+    --blacksite-surface: rgba(12, 17, 22, 0.92);
+    --blacksite-shadow: rgba(0, 0, 0, 0.48);
+
+    color-scheme: dark;
+}
+
+/* ---------------------------------------------------------
+   3. Global document surface
+   --------------------------------------------------------- */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family:
+        Inter,
+        ui-sans-serif,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background-color: var(--theme);
+    background-image:
+        linear-gradient(var(--blacksite-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--blacksite-grid) 1px, transparent 1px),
+        radial-gradient(
+            circle at 50% -15%,
+            var(--blacksite-glow),
+            transparent 42%
+        );
+
+    background-size:
+        32px 32px,
+        32px 32px,
+        100% 100%;
+
+    background-attachment: fixed;
+    color: var(--content);
+    letter-spacing: 0.005em;
+}
+
+.list,
+[data-theme="dark"] .list {
+    background-color: var(--theme);
+    background-image:
+        linear-gradient(var(--blacksite-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--blacksite-grid) 1px, transparent 1px),
+        radial-gradient(
+            circle at 50% -15%,
+            var(--blacksite-glow),
+            transparent 42%
+        );
+
+    background-size:
+        32px 32px,
+        32px 32px,
+        100% 100%;
+}
+
+::selection {
+    color: #071005;
+    background: var(--blacksite-accent);
+}
+
+a,
+button {
+    transition:
+        color 140ms ease,
+        border-color 140ms ease,
+        background-color 140ms ease,
+        box-shadow 140ms ease,
+        transform 140ms ease;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+    outline: 2px solid var(--blacksite-accent);
+    outline-offset: 4px;
+}
+
+/* ---------------------------------------------------------
+   4. Typography
+   --------------------------------------------------------- */
+
+.logo,
+.entry-header h1,
+.entry-header h2,
+.page-header h1,
+.post-title,
+.post-content h1,
+.post-content h2,
+.post-content h3,
+.post-content h4,
+.toc .details,
+details.toc summary {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+}
+
+.logo {
+    letter-spacing: -0.035em;
+}
+
+.logo a {
+    font-weight: 750;
+}
+
+.logo a::before {
+    content: "[";
+    color: var(--blacksite-accent);
+    margin-right: 0.15em;
+}
+
+.logo a::after {
+    content: "]";
+    color: var(--blacksite-accent);
+    margin-left: 0.15em;
+}
+
+.post-title {
+    max-width: 900px;
+    letter-spacing: -0.045em;
+    line-height: 1.08;
+}
+
+.post-content h2 {
+    margin-top: 2.8em;
+    padding-bottom: 0.42em;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -0.03em;
+}
+
+.post-content h3 {
+    margin-top: 2.1em;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+}
+
+.post-content h4 {
+    color: var(--blacksite-accent);
+}
+
+.post-content a {
+    color: var(--blacksite-cyan);
+    text-decoration-color: transparent;
+}
+
+.post-content a:hover {
+    color: var(--blacksite-accent);
+    text-decoration-color: currentColor;
+}
+
+/* ---------------------------------------------------------
+   5. Sticky operations header
+   --------------------------------------------------------- */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    background: var(--blacksite-surface);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 26px var(--blacksite-shadow);
+
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+}
+
+.nav {
+    min-height: var(--header-height);
+}
+
+#menu {
+    gap: 4px;
+}
+
+#menu a {
+    position: relative;
+    padding: 8px 10px;
+
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    font-size: 0.75rem;
+    font-weight: 650;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+    color: var(--secondary);
+}
+
+#menu a:hover {
+    color: var(--blacksite-accent);
+}
+
+#menu .active {
+    color: var(--blacksite-accent);
+    border-bottom: 1px solid var(--blacksite-accent);
+}
+
+#theme-toggle {
+    color: var(--secondary);
+}
+
+#theme-toggle:hover {
+    color: var(--blacksite-accent);
+}
+
+/* ---------------------------------------------------------
+   6. Homepage intelligence panel
+   --------------------------------------------------------- */
+
+.first-entry.home-info {
+    position: relative;
+    min-height: auto;
+    margin-top: 70px;
+    padding: 38px 40px;
+
+    background:
+        linear-gradient(
+            125deg,
+            var(--entry),
+            var(--blacksite-surface)
+        );
+
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blacksite-accent);
+    border-radius: var(--radius);
+
+    box-shadow:
+        0 20px 55px var(--blacksite-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+    overflow: hidden;
+}
+
+.first-entry.home-info::after {
+    content: "";
+    position: absolute;
+    right: -90px;
+    bottom: -110px;
+
+    width: 260px;
+    height: 260px;
+
+    border: 1px solid var(--border);
+    border-radius: 50%;
+
+    box-shadow:
+        0 0 0 35px transparent,
+        0 0 0 36px var(--border),
+        0 0 0 70px transparent,
+        0 0 0 71px var(--border);
+
+    opacity: 0.22;
+    pointer-events: none;
+}
+
+.home-info .entry-header h1 {
+    position: relative;
+    z-index: 1;
+
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    line-height: 1.02;
+    letter-spacing: -0.055em;
+}
+
+.home-info .entry-content {
+    position: relative;
+    z-index: 1;
+    max-width: 720px;
+}
+
+.home-info .social-icons {
+    position: relative;
+    z-index: 1;
+}
+
+.home-info .social-icons a:hover {
+    color: var(--blacksite-accent);
+    transform: translateY(-2px);
+}
+
+/* ---------------------------------------------------------
+   7. Case-file cards
+   --------------------------------------------------------- */
+
+.post-entry {
+    position: relative;
+    padding: 28px 30px;
+
+    background:
+        linear-gradient(
+            145deg,
+            var(--entry),
+            var(--blacksite-surface)
+        );
+
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    box-shadow:
+        0 14px 38px var(--blacksite-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+    overflow: hidden;
+}
+
+.post-entry::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+
+    width: 2px;
+    background: var(--blacksite-accent);
+    opacity: 0.65;
+}
+
+.post-entry:hover {
+    border-color: var(--blacksite-accent);
+    box-shadow:
+        0 18px 45px var(--blacksite-shadow),
+        0 0 0 1px var(--blacksite-glow);
+
+    transform: translateY(-2px);
+}
+
+.post-entry:hover::before {
+    opacity: 1;
+}
+
+.post-entry .entry-header h2 {
+    line-height: 1.22;
+    letter-spacing: -0.035em;
+}
+
+.post-entry .entry-content {
+    color: var(--secondary);
+}
+
+.post-entry .entry-footer {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    font-size: 0.72rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------
+   8. Article header and metadata
+   --------------------------------------------------------- */
+
+.breadcrumbs {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    font-size: 0.75rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+.breadcrumbs a {
+    color: var(--secondary);
+}
+
+.breadcrumbs a:hover {
+    color: var(--blacksite-accent);
+}
+
+.post-description {
+    max-width: 780px;
+    color: var(--secondary);
+    font-size: 1.05rem;
+}
+
+.post-meta {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    font-size: 0.72rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------
+   9. Table of contents
+   --------------------------------------------------------- */
+
+details.toc,
+[data-theme="dark"] details.toc {
+    background:
+        linear-gradient(
+            145deg,
+            var(--code-bg),
+            var(--entry)
+        );
+
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--blacksite-cyan);
+    border-radius: var(--radius);
+
+    box-shadow: 0 12px 30px var(--blacksite-shadow);
+}
+
+details.toc summary {
+    padding: 10px 18px;
+    color: var(--primary);
+    letter-spacing: 0.025em;
+}
+
+details.toc summary:hover {
+    color: var(--blacksite-accent);
+}
+
+.toc a {
+    color: var(--secondary);
+}
+
+.toc a:hover {
+    color: var(--blacksite-accent);
+}
+
+/* ---------------------------------------------------------
+   10. Code, payloads and HTTP evidence
+   --------------------------------------------------------- */
+
+code,
+kbd,
+samp,
+pre {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        "SFMono-Regular",
+        Consolas,
+        monospace;
+
+    font-variant-ligatures: none;
+}
+
+.post-content code {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+
+.post-content pre code {
+    border: 0;
+}
+
+.post-content pre,
+.post-content .highlight {
+    position: relative;
+
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blacksite-accent);
+    border-radius: var(--radius);
+
+    box-shadow:
+        0 14px 34px var(--blacksite-shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+    overflow-x: auto;
+}
+
+.post-content pre:hover,
+.post-content .highlight:hover {
+    border-color: var(--blacksite-accent);
+}
+
+/* ---------------------------------------------------------
+   11. Tables and structured data
+   --------------------------------------------------------- */
+
+.post-content table {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--entry);
+    box-shadow: 0 12px 28px var(--blacksite-shadow);
+}
+
+.post-content table th {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    color: var(--blacksite-accent);
+    background: var(--code-bg);
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+}
+
+.post-content table th,
+.post-content table td {
+    border-bottom: 1px solid var(--border);
+}
+
+.post-content table tr:last-child td {
+    border-bottom: 0;
+}
+
+/* ---------------------------------------------------------
+   12. Evidence images
+   --------------------------------------------------------- */
+
+.post-content img {
+    margin-top: 1.4rem;
+    margin-bottom: 0.8rem;
+    padding: 5px;
+
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+
+    box-shadow:
+        0 18px 44px var(--blacksite-shadow),
+        0 0 0 1px rgba(255, 255, 255, 0.012);
+}
+
+.post-content img:hover {
+    border-color: var(--blacksite-accent);
+}
+
+/* ---------------------------------------------------------
+   13. Operational callouts
+   --------------------------------------------------------- */
+
+.post-content blockquote {
+    position: relative;
+
+    margin: 1.8rem 0;
+    padding: 18px 22px;
+
+    color: var(--content);
+    background: var(--entry);
+
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blacksite-accent);
+    border-radius: var(--radius);
+
+    box-shadow: 0 12px 30px var(--blacksite-shadow);
+}
+
+.post-content blockquote strong {
+    color: var(--blacksite-accent);
+}
+
+/* ---------------------------------------------------------
+   14. Tags and footer
+   --------------------------------------------------------- */
+
+.post-tags a {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    color: var(--secondary);
+    background: var(--code-bg);
+
+    border: 1px solid var(--border);
+    border-radius: 3px;
+
+    font-size: 0.68rem;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+}
+
+.post-tags a:hover {
+    color: #071005;
+    background: var(--blacksite-accent);
+    border-color: var(--blacksite-accent);
+}
+
+.footer {
+    font-family:
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        monospace;
+
+    color: var(--secondary);
+    border-top: 1px solid var(--border);
+
+    font-size: 0.7rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ---------------------------------------------------------
+   15. Scrollbar
+   --------------------------------------------------------- */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) var(--theme);
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--theme);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border: 2px solid var(--theme);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--blacksite-accent);
+}
+
+/* ---------------------------------------------------------
+   16. Responsive adjustments
+   --------------------------------------------------------- */
+
+@media (max-width: 768px) {
+    :root {
+        --gap: 18px;
+        --header-height: auto;
+    }
+
+    .header {
+        position: relative;
+    }
+
+    .nav {
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    #menu {
+        margin-top: 5px;
+        gap: 0;
+    }
+
+    #menu a {
+        padding: 6px 7px;
+        font-size: 0.67rem;
+        letter-spacing: 0.045em;
+    }
+
+    .first-entry.home-info {
+        margin-top: 32px;
+        padding: 28px 24px;
+    }
+
+    .first-entry.home-info::after {
+        opacity: 0.11;
+    }
+
+    .post-entry {
+        padding: 23px 21px;
+    }
+
+    .post-title {
+        font-size: 2rem;
+    }
+
+    .post-content h2 {
+        margin-top: 2.2em;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}
+/* =========================================================
+   MDK22 BLACKSITE PHASE 1.1 READABILITY POLISH
+   ========================================================= */
+
+:root[data-theme="dark"] {
+    --secondary: #98a7af;
+    --content: #c8d2d7;
+}
+
+.post-content {
+    font-size: 1.02rem;
+    line-height: 1.75;
+}
+
+.post-content p,
+.post-content li {
+    line-height: 1.75;
+}
+
+.post-content p {
+    margin-bottom: 1.25em;
+}
+
+.post-content li + li {
+    margin-top: 0.22em;
+}
+
+.post-description {
+    line-height: 1.65;
+}
+
+.home-info .entry-content,
+.post-entry .entry-content {
+    line-height: 1.65;
+}
+
+#menu a {
+    font-size: 0.78rem;
+}
+
+details.toc .inner {
+    max-height: 58vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 8px;
+}
+
+details.toc .inner::-webkit-scrollbar {
+    width: 7px;
+}
+
+details.toc .inner::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border: 1px solid var(--code-bg);
+}
+
+details.toc .inner::-webkit-scrollbar-thumb:hover {
+    background: var(--blacksite-accent);
+}
+
+.post-content table {
+    font-size: 0.92rem;
+}
+
+.post-content figcaption,
+.post-content em {
+    color: var(--secondary);
+}
+
+@media (max-width: 768px) {
+    .post-content {
+        font-size: 1rem;
+        line-height: 1.7;
+    }
+
+    details.toc .inner {
+        max-height: 52vh;
+    }
+}
