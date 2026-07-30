@@ -25,6 +25,17 @@ lab: "Lobby Board"
 difficulty: "Medium"
 showToc: true
 TocOpen: false
+case_id: "CASE-002"
+case_status: "SOLVED / VERIFIED"
+case_classification: "Anonymous Administrative Access"
+case_family: "access-exposure"
+case_evidence:
+  - "Caido"
+  - "Chromium"
+  - "curl"
+case_verified: true
+case_caido: true
+case_independent_curl: true
 ---
 
 > **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted everywhere as `WEBVERSE{REDACTED}`. Session cookies, clearance values, and raw secret-bearing evidence are excluded from the public manuscript and image bundle.

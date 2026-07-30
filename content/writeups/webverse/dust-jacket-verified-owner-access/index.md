@@ -31,6 +31,16 @@ lab: "Dust Jacket"
 difficulty: "Easy"
 showToc: true
 TocOpen: false
+case_id: "CASE-003"
+case_status: "SOLVED / VERIFIED"
+case_classification: "Sensitive Backup and Credential Exposure"
+case_family: "access-exposure"
+case_evidence:
+  - "Caido"
+  - "curl"
+case_verified: true
+case_caido: true
+case_independent_curl: true
 ---
 
 > **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted as `WEBVERSE{REDACTED}`. Database credentials, WordPress authentication keys, the reusable `OWNER_KEY`, Cloudflare clearance values, and raw secret-bearing evidence are excluded from the public manuscript and image bundle.

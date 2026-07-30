@@ -1,0 +1,163 @@
+{{- define "main" }}
+{{- $cases := where site.RegularPages "Section" "writeups" -}}
+{{- $cases = where $cases "Params.case_id" "ne" nil -}}
+{{- $cases = sort $cases "Date" "desc" -}}
+{{- $publishedCount := len $cases -}}
+{{- $verifiedCount := len (where $cases "Params.case_verified" true) -}}
+{{- $caidoCount := len (where $cases "Params.case_caido" true) -}}
+{{- $curlCount := len (where $cases "Params.case_independent_curl" true) -}}
+{{- $clientCount := len (where $cases "Params.case_family" "client-side-injection") -}}
+{{- $accessCount := len (where $cases "Params.case_family" "access-exposure") -}}
+
+<div class="bs2-home">
+    {{- if gt $publishedCount 0 }}
+    {{- $latest := index $cases 0 }}
+
+    <section class="bs2-status" aria-label="Archive operational status">
+        <div class="bs2-status__item">
+            <span class="bs2-status__label">Archive status</span>
+            <strong class="bs2-status__value bs2-status__value--active">Active</strong>
+        </div>
+        <div class="bs2-status__item">
+            <span class="bs2-status__label">Published cases</span>
+            <strong class="bs2-status__value">{{ printf "%02d" $publishedCount }}</strong>
+        </div>
+        <div class="bs2-status__item">
+            <span class="bs2-status__label">Primary platform</span>
+            <strong class="bs2-status__value">WebVerse</strong>
+        </div>
+        <div class="bs2-status__item">
+            <span class="bs2-status__label">Evidence standard</span>
+            <strong class="bs2-status__value">Reproduced</strong>
+        </div>
+        <div class="bs2-status__item">
+            <span class="bs2-status__label">Latest case</span>
+            <strong class="bs2-status__value">{{ $latest.Params.lab }}</strong>
+        </div>
+    </section>
+
+    <section class="bs2-hero" aria-labelledby="bs2-home-title">
+        <div class="bs2-hero__classification">Authorized web security lab archive</div>
+        <h1 id="bs2-home-title">Mdk22 Security Write-Ups</h1>
+        <p class="bs2-hero__lead">
+            Evidence-backed vulnerability reproductions, request-and-response analysis,
+            false-positive controls, root-cause assessment, and remediation guidance
+            from authorized training environments.
+        </p>
+        <div class="bs2-actions" aria-label="Homepage actions">
+            <a class="bs2-button bs2-button--primary" href="#case-files">Browse case files</a>
+            <a class="bs2-button" href="{{ "/disclosure-policy/" | relURL }}">Disclosure policy</a>
+        </div>
+        <a class="bs2-source" href="https://github.com/Mdk22" target="_blank" rel="noopener noreferrer">
+            Source archive / GitHub
+        </a>
+    </section>
+
+    <section class="bs2-latest" aria-labelledby="bs2-latest-title">
+        <div class="bs2-section-heading">
+            <div>
+                <span class="bs2-kicker">Latest case file / {{ $latest.Params.case_id }}</span>
+                <h2 id="bs2-latest-title">{{ $latest.Params.platform }} / {{ $latest.Params.lab }}</h2>
+            </div>
+            <span class="bs2-clearance">Declassified</span>
+        </div>
+
+        <div class="bs2-latest__grid">
+            <div class="bs2-latest__narrative">
+                <h3>{{ $latest.Title }}</h3>
+                <p>{{ $latest.Summary | plainify | htmlUnescape }}</p>
+                <a class="bs2-button bs2-button--primary" href="{{ $latest.RelPermalink }}">Open case file</a>
+            </div>
+
+            <dl class="bs2-dossier">
+                <div>
+                    <dt>Status</dt>
+                    <dd>{{ $latest.Params.case_status }}</dd>
+                </div>
+                <div>
+                    <dt>Classification</dt>
+                    <dd>{{ $latest.Params.case_classification }}</dd>
+                </div>
+                <div>
+                    <dt>Evidence</dt>
+                    <dd>{{ delimit $latest.Params.case_evidence " + " }}</dd>
+                </div>
+                <div>
+                    <dt>Published</dt>
+                    <dd>{{ $latest.Date.Format "January 2, 2006" }}</dd>
+                </div>
+            </dl>
+        </div>
+    </section>
+
+    <section id="case-files" class="bs2-archive" aria-labelledby="bs2-archive-title">
+        <div class="bs2-section-heading">
+            <div>
+                <span class="bs2-kicker">Operational archive</span>
+                <h2 id="bs2-archive-title">Published case files</h2>
+            </div>
+            <span class="bs2-index-count">{{ printf "%02d" $publishedCount }} records</span>
+        </div>
+
+        <div class="bs2-case-grid">
+            {{- range $cases }}
+            <article class="bs2-case-card">
+                <header class="bs2-case-card__header">
+                    <span>{{ .Params.case_id }}</span>
+                    <span>{{ .Params.platform }}</span>
+                </header>
+                <div class="bs2-case-card__body">
+                    <p class="bs2-case-card__status">{{ .Params.case_status }}</p>
+                    <h3><a href="{{ .RelPermalink }}">{{ .Params.lab }}</a></h3>
+                    <p class="bs2-case-card__class">{{ .Params.case_classification }}</p>
+                    <p class="bs2-case-card__summary">{{ .Summary | plainify | htmlUnescape }}</p>
+                </div>
+                <footer class="bs2-case-card__footer">
+                    <span>{{ delimit .Params.case_evidence " / " }}</span>
+                    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+                </footer>
+                <a class="bs2-case-card__link" href="{{ .RelPermalink }}" aria-label="Open {{ .Title | plainify }}"></a>
+            </article>
+            {{- end }}
+        </div>
+    </section>
+
+    <section class="bs2-intelligence" aria-labelledby="bs2-intelligence-title">
+        <div class="bs2-section-heading">
+            <div>
+                <span class="bs2-kicker">Archive telemetry</span>
+                <h2 id="bs2-intelligence-title">Archive intelligence</h2>
+            </div>
+        </div>
+
+        <div class="bs2-stat-grid">
+            <div class="bs2-stat"><strong>{{ printf "%02d" $publishedCount }}</strong><span>Published case files</span></div>
+            <div class="bs2-stat"><strong>{{ printf "%02d" $verifiedCount }}</strong><span>Reproduced findings</span></div>
+            <div class="bs2-stat"><strong>{{ printf "%02d" $caidoCount }}</strong><span>Caido-backed investigations</span></div>
+            <div class="bs2-stat"><strong>{{ printf "%02d" $curlCount }}</strong><span>Independent curl validations</span></div>
+            <div class="bs2-stat"><strong>{{ printf "%02d" $clientCount }}</strong><span>Client-side injection cases</span></div>
+            <div class="bs2-stat"><strong>{{ printf "%02d" $accessCount }}</strong><span>Access / exposure cases</span></div>
+        </div>
+    </section>
+
+    <section class="bs2-notice" aria-labelledby="bs2-notice-title">
+        <div class="bs2-notice__marker" aria-hidden="true">AUTHORIZED</div>
+        <div>
+            <h2 id="bs2-notice-title">Authorized research environments only</h2>
+            <p>
+                All documented testing was performed in authorized educational laboratories
+                and deliberately vulnerable training environments. Flags, credentials, tokens,
+                and reusable secrets are redacted before publication.
+            </p>
+        </div>
+        <a href="{{ "/about/" | relURL }}">Research scope</a>
+    </section>
+
+    {{- else }}
+    <section class="bs2-empty">
+        <h1>Mdk22 Security Write-Ups</h1>
+        <p>No published case files are currently available.</p>
+    </section>
+    {{- end }}
+</div>
+{{- end }}

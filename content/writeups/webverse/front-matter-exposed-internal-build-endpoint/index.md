@@ -28,6 +28,16 @@ lab: "Front Matter"
 difficulty: "Easy"
 showToc: true
 TocOpen: false
+case_id: "CASE-004"
+case_status: "SOLVED / VERIFIED"
+case_classification: "Internal Endpoint Exposure"
+case_family: "access-exposure"
+case_evidence:
+  - "Caido"
+  - "curl"
+case_verified: true
+case_caido: true
+case_independent_curl: true
 ---
 
 > **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted everywhere so that only the `WEBVERSE` prefix remains visible. The complete flag and raw private evidence are excluded from the public manuscript and image bundle.

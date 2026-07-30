@@ -21,6 +21,16 @@ lab: "Echoed"
 difficulty: "Easy"
 showToc: true
 TocOpen: false
+case_id: "CASE-001"
+case_status: "SOLVED / VERIFIED"
+case_classification: "Reflected XSS"
+case_family: "client-side-injection"
+case_evidence:
+  - "Caido"
+  - "Chromium"
+case_verified: true
+case_caido: true
+case_independent_curl: false
 ---
 
 ## Executive Summary
