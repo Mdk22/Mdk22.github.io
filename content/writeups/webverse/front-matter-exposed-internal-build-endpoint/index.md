@@ -38,6 +38,21 @@ case_evidence:
 case_verified: true
 case_caido: true
 case_independent_curl: true
+primary_cwe: "CWE-201"
+cwes:
+  - "CWE-201"
+  - "CWE-615"
+  - "CWE-862"
+patterns:
+  - "Internal Endpoint Exposure"
+  - "Sensitive Information Disclosure"
+  - "Broken Access Control"
+  - "Production Comment Disclosure"
+methods:
+  - "Source Inspection"
+  - "Disclosed Route Follow-Up"
+  - "Anonymous Replay"
+  - "Independent curl Verification"
 ---
 
 > **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted everywhere so that only the `WEBVERSE` prefix remains visible. The complete flag and raw private evidence are excluded from the public manuscript and image bundle.
