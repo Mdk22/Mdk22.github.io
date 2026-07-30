@@ -387,6 +387,20 @@
     border-bottom: 1px solid var(--border);
 }
 
+.bs2-case-card__platform {
+    position: relative;
+    z-index: 2;
+    color: var(--blacksite-gold, #c89b3c);
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-decoration: none;
+    text-transform: none;
+}
+
+.bs2-case-card__platform:hover {
+    color: var(--blacksite-accent);
+}
+
 .bs2-case-card__body {
     flex: 1;
     padding: 22px 22px 18px;
