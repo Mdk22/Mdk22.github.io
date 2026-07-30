@@ -1,5 +1,6 @@
 ---
 title: "CWE-201"
+weight: 201
 cwe_id: "CWE-201"
 cwe_name: "Insertion of Sensitive Information Into Sent Data"
 classification_family: "Sensitive Information Exposure"

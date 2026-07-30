@@ -1,5 +1,6 @@
 ---
 title: "CWE-862"
+weight: 862
 cwe_id: "CWE-862"
 cwe_name: "Missing Authorization"
 classification_family: "Authorization and Access Control"

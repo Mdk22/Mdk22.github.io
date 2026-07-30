@@ -1,5 +1,6 @@
 ---
 title: "CWE-79"
+weight: 79
 cwe_id: "CWE-79"
 cwe_name: "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
 classification_family: "Web Injection and Output Handling"

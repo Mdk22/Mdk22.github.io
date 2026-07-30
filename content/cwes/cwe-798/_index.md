@@ -1,5 +1,6 @@
 ---
 title: "CWE-798"
+weight: 798
 cwe_id: "CWE-798"
 cwe_name: "Use of Hard-coded Credentials"
 classification_family: "Credentials and Secrets"

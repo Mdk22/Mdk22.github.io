@@ -1,5 +1,6 @@
 ---
 title: "CWE-615"
+weight: 615
 cwe_id: "CWE-615"
 cwe_name: "Inclusion of Sensitive Information in Source Code Comments"
 classification_family: "Source and Deployment Disclosure"

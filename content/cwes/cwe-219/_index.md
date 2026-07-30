@@ -1,5 +1,6 @@
 ---
 title: "CWE-219"
+weight: 219
 cwe_id: "CWE-219"
 cwe_name: "Storage of File with Sensitive Data Under Web Root"
 classification_family: "Sensitive File Exposure"
