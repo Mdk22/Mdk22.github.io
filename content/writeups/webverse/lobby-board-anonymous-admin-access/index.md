@@ -36,6 +36,20 @@ case_evidence:
 case_verified: true
 case_caido: true
 case_independent_curl: true
+primary_cwe: "CWE-306"
+cwes:
+  - "CWE-306"
+  - "CWE-200"
+patterns:
+  - "Missing Authentication"
+  - "Anonymous Administrative Access"
+  - "Build Manifest Route Disclosure"
+  - "Broken Access Control"
+methods:
+  - "Build Manifest Inspection"
+  - "Parent Route Negative Control"
+  - "Anonymous Replay"
+  - "Cross-Client Verification"
 ---
 
 > **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted everywhere as `WEBVERSE{REDACTED}`. Session cookies, clearance values, and raw secret-bearing evidence are excluded from the public manuscript and image bundle.

@@ -46,6 +46,7 @@
         </p>
         <div class="bs2-actions" aria-label="Homepage actions">
             <a class="bs2-button bs2-button--primary" href="#case-files">Browse case files</a>
+            <a class="bs2-button" href="{{ "/cwes/" | relURL }}">CWE intelligence</a>
             <a class="bs2-button" href="{{ "/disclosure-policy/" | relURL }}">Disclosure policy</a>
         </div>
         <a class="bs2-source" href="https://github.com/Mdk22" target="_blank" rel="noopener noreferrer">
@@ -102,14 +103,37 @@
         <div class="bs2-case-grid">
             {{- range $cases }}
             <article class="bs2-case-card">
+                {{- $primarySlug := .Params.primary_cwe | urlize -}}
+                {{- $primaryPage := site.GetPage (printf "/cwes/%s" $primarySlug) -}}
+                {{- $supportingCount := sub (len .Params.cwes) 1 -}}
+                {{- $methodPreview := first 2 .Params.methods -}}
                 <header class="bs2-case-card__header">
                     <span>{{ .Params.case_id }}</span>
-                    <span>{{ .Params.platform }}</span>
+                    <a class="bs2-case-card__platform" href="https://webverselabs-pro.com/" target="_blank" rel="noopener noreferrer"><strong>WebVerse</strong> <strong>Pro</strong></a>
                 </header>
                 <div class="bs2-case-card__body">
                     <p class="bs2-case-card__status">{{ .Params.case_status }}</p>
                     <h3><a href="{{ .RelPermalink }}">{{ .Params.lab }}</a></h3>
                     <p class="bs2-case-card__class">{{ .Params.case_classification }}</p>
+                    <div class="bs2-case-card__intel" aria-label="Case intelligence summary">
+                        <div class="bs2-case-card__intel-row">
+                            <span>Primary CWE</span>
+                            <div>
+                                {{- with $primaryPage }}<a href="{{ .RelPermalink }}">{{ .Params.cwe_id }}</a>{{ end -}}
+                                {{- if gt $supportingCount 0 }}<small>+{{ $supportingCount }} related</small>{{ end -}}
+                            </div>
+                        </div>
+                        <div class="bs2-case-card__intel-row">
+                            <span>Method</span>
+                            <div>
+                                {{- range $index, $method := $methodPreview -}}
+                                {{- if gt $index 0 }}<i aria-hidden="true">/</i>{{ end -}}
+                                {{- $methodSlug := $method | urlize -}}
+                                {{- with site.GetPage (printf "/methods/%s" $methodSlug) }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end -}}
+                                {{- end -}}
+                            </div>
+                        </div>
+                    </div>
                     <p class="bs2-case-card__summary">{{ .Summary | plainify | htmlUnescape }}</p>
                 </div>
                 <footer class="bs2-case-card__footer">
