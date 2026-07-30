@@ -12,6 +12,8 @@ buildExpired = false
   tag = "tags"
   category = "categories"
   cwe = "cwes"
+  pattern = "patterns"
+  method = "methods"
 
 [params]
   author = "Mdk22"
