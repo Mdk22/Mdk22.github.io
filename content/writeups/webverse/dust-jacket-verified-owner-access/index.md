@@ -41,6 +41,23 @@ case_evidence:
 case_verified: true
 case_caido: true
 case_independent_curl: true
+primary_cwe: "CWE-219"
+cwes:
+  - "CWE-219"
+  - "CWE-548"
+  - "CWE-798"
+patterns:
+  - "Public Backup Exposure"
+  - "Sensitive Configuration Disclosure"
+  - "Hard-Coded Credential Exposure"
+  - "Broken Access Control"
+  - "Security Misconfiguration"
+methods:
+  - "Directory Enumeration"
+  - "Migration Debris Review"
+  - "Consumer Mapping"
+  - "Invalid-versus-Valid Differential"
+  - "Independent curl Verification"
 ---
 
 > **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted as `WEBVERSE{REDACTED}`. Database credentials, WordPress authentication keys, the reusable `OWNER_KEY`, Cloudflare clearance values, and raw secret-bearing evidence are excluded from the public manuscript and image bundle.
