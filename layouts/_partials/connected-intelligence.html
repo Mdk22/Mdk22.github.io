@@ -1,0 +1,85 @@
+{{- $primaryID := .Params.primary_cwe -}}
+{{- $primarySlug := $primaryID | urlize -}}
+{{- $primaryPage := site.GetPage (printf "/cwes/%s" $primarySlug) -}}
+{{- $supporting := slice -}}
+{{- range .Params.cwes -}}
+    {{- if ne . $primaryID -}}
+        {{- $supporting = $supporting | append . -}}
+    {{- end -}}
+{{- end -}}
+
+<section class="bsci" aria-labelledby="bsci-title">
+    <header class="bsci__header">
+        <div>
+            <span class="bsci__kicker">Case classification matrix</span>
+            <h2 id="bsci-title">Connected Intelligence</h2>
+        </div>
+        <span class="bsci__case-id">{{ .Params.case_id }}</span>
+    </header>
+
+    <div class="bsci__grid">
+        {{- with $primaryPage }}
+        <section class="bsci__block bsci__block--primary" aria-labelledby="bsci-primary-title">
+            <span class="bsci__label" id="bsci-primary-title">Primary weakness</span>
+            <a class="bsci__primary-link" href="{{ .RelPermalink }}">
+                <strong>{{ .Params.cwe_id }}</strong>
+                <span>{{ .Params.cwe_name }}</span>
+            </a>
+            <div class="bsci__actions">
+                <a href="{{ .RelPermalink }}">{{ len .RegularPages }} internal {{ cond (eq (len .RegularPages) 1) "case" "cases" }}</a>
+                <a href="{{ .Params.mitre_url }}" target="_blank" rel="noopener noreferrer">MITRE reference <span aria-hidden="true">&#8599;</span></a>
+            </div>
+        </section>
+        {{- end }}
+
+        {{- with $supporting }}
+        <section class="bsci__block" aria-labelledby="bsci-supporting-title">
+            <span class="bsci__label" id="bsci-supporting-title">Supporting weaknesses</span>
+            <div class="bsci__terms bsci__terms--cwe">
+                {{- range . }}
+                {{- $termSlug := . | urlize -}}
+                {{- $termPage := site.GetPage (printf "/cwes/%s" $termSlug) -}}
+                {{- with $termPage }}
+                <a href="{{ .RelPermalink }}" title="{{ .Params.cwe_name }}">{{ .Params.cwe_id }}</a>
+                {{- end }}
+                {{- end }}
+            </div>
+        </section>
+        {{- end }}
+
+        {{- with .Params.patterns }}
+        <section class="bsci__block" aria-labelledby="bsci-patterns-title">
+            <span class="bsci__label" id="bsci-patterns-title">Security patterns</span>
+            <div class="bsci__terms">
+                {{- range . }}
+                {{- $termSlug := . | urlize -}}
+                {{- $termPage := site.GetPage (printf "/patterns/%s" $termSlug) -}}
+                {{- if $termPage }}
+                <a href="{{ $termPage.RelPermalink }}">{{ . }}</a>
+                {{- else }}
+                <span>{{ . }}</span>
+                {{- end }}
+                {{- end }}
+            </div>
+        </section>
+        {{- end }}
+
+        {{- with .Params.methods }}
+        <section class="bsci__block" aria-labelledby="bsci-methods-title">
+            <span class="bsci__label" id="bsci-methods-title">Validation methodology</span>
+            <div class="bsci__terms bsci__terms--methods">
+                {{- range . }}
+                {{- $termSlug := . | urlize -}}
+                {{- $termPage := site.GetPage (printf "/methods/%s" $termSlug) -}}
+                {{- if $termPage }}
+                <a href="{{ $termPage.RelPermalink }}">{{ . }}</a>
+                {{- else }}
+                <span>{{ . }}</span>
+                {{- end }}
+                {{- end }}
+            </div>
+        </section>
+        {{- end }}
+    </div>
+    {{- partial "related-case-files.html" . }}
+</section>

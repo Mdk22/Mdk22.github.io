@@ -1,0 +1,44 @@
+{{- $page := .Page -}}
+{{- $kind := .Kind -}}
+{{- $cases := sort $page.RegularPages "Date" "desc" -}}
+{{- $cwes := slice -}}
+{{- $related := slice -}}
+{{- range $cases -}}
+    {{- $cwes = $cwes | append .Params.cwes -}}
+    {{- if eq $kind "pattern" -}}{{- $related = $related | append .Params.methods -}}{{- else -}}{{- $related = $related | append .Params.patterns -}}{{- end -}}
+{{- end -}}
+{{- $cwes = sort (uniq $cwes) -}}
+{{- $related = sort (uniq $related) -}}
+
+<div class="bsintel bsintel--term">
+    {{- partial "breadcrumbs.html" $page }}
+    <header class="bsintel-term-hero">
+        <span class="bscwe-kicker">{{ if eq $kind "pattern" }}Security pattern{{ else }}Validation method{{ end }} / archive intelligence</span>
+        <h1>{{ $page.Title }}</h1>
+        <p>{{ if eq $kind "pattern" }}{{ $page.Params.definition }}{{ else }}{{ $page.Params.purpose }}{{ end }}</p>
+    </header>
+
+    <section class="bsintel-profile" aria-label="{{ title $kind }} profile">
+        {{- if eq $kind "pattern" }}
+        <article><span>Common discovery signals</span><ul>{{ range $page.Params.discovery_signals }}<li>{{ . }}</li>{{ end }}</ul></article>
+        <article><span>Safe validation approach</span><p>{{ $page.Params.safe_validation }}</p></article>
+        {{- else }}
+        <article><span>Evidence boundary</span><p>{{ $page.Params.evidence_boundary }}</p></article>
+        <article><span>What it proves</span><p>{{ $page.Params.proves }}</p></article>
+        <article><span>What it does not prove</span><p>{{ $page.Params.does_not_prove }}</p></article>
+        {{- end }}
+    </section>
+
+    <section class="bsintel-associations" aria-labelledby="bsintel-associations-title">
+        <div class="bscwe-section-heading"><div><span class="bscwe-kicker">Cross-classification</span><h2 id="bsintel-associations-title">Associated intelligence</h2></div></div>
+        <div class="bsintel-association-grid">
+            <div><span>Associated CWEs</span><div>{{ range $cwes }}{{ $slug := . | urlize }}{{ with site.GetPage (printf "/cwes/%s" $slug) }}<a href="{{ .RelPermalink }}">{{ .Params.cwe_id }}</a>{{ end }}{{ end }}</div></div>
+            <div><span>{{ if eq $kind "pattern" }}Associated methods{{ else }}Associated patterns{{ end }}</span><div>{{ range $related }}{{ $slug := . | urlize }}{{ $base := cond (eq $kind "pattern") "methods" "patterns" }}{{ with site.GetPage (printf "/%s/%s" $base $slug) }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</div></div>
+        </div>
+    </section>
+
+    <section class="bscwe-connected" aria-labelledby="bsintel-cases-title">
+        <div class="bscwe-section-heading"><div><span class="bscwe-kicker">Archive connections</span><h2 id="bsintel-cases-title">Connected case files</h2></div><span>{{ printf "%02d" (len $cases) }} {{ cond (eq (len $cases) 1) "record" "records" }}</span></div>
+        <div class="bscwe-case-grid">{{ range $cases }}{{ partial "intelligence-case-card.html" . }}{{ end }}</div>
+    </section>
+</div>

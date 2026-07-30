@@ -1,0 +1,10 @@
+<article class="bscwe-case-card">
+    <header><span>{{ .Params.case_id }}</span><span>{{ upper .Params.platform }}</span></header>
+    <div class="bscwe-case-card__body">
+        <span class="bscwe-relationship">Connected evidence</span>
+        <h3><a href="{{ .RelPermalink }}">{{ .Params.lab }}</a></h3>
+        <p class="bscwe-case-card__classification">{{ .Params.case_classification }}</p>
+        <p class="bscwe-case-card__summary">{{ .Summary | plainify | htmlUnescape }}</p>
+    </div>
+    <footer><span>{{ delimit .Params.case_evidence " / " }}</span><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time></footer>
+</article>

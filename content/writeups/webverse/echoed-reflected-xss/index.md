@@ -31,6 +31,20 @@ case_evidence:
 case_verified: true
 case_caido: true
 case_independent_curl: false
+primary_cwe: "CWE-79"
+cwes:
+  - "CWE-79"
+  - "CWE-116"
+patterns:
+  - "Reflected XSS"
+  - "HTML Attribute Injection"
+  - "Context-Specific Output Encoding Failure"
+methods:
+  - "Reflection Mapping"
+  - "Quote Differential"
+  - "Attribute Canary"
+  - "Browser Runtime Validation"
+  - "Authoritative Status Check"
 ---
 
 ## Executive Summary

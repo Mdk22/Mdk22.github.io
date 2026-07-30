@@ -1,0 +1,36 @@
+{{- $page := .Page -}}
+{{- $terms := $page.Data.Terms.Alphabetical -}}
+<div class="bsintel bsintel--archive">
+    {{- partial "breadcrumbs.html" $page }}
+    <header class="bsintel-hero">
+        <div>
+            <span class="bscwe-kicker">{{ .Kicker }}</span>
+            <h1>{{ .Title }}</h1>
+            <p>{{ .Lead }}</p>
+        </div>
+        <dl>
+            <div><dt>Registry terms</dt><dd>{{ printf "%02d" (len $terms) }}</dd></div>
+            <div><dt>Source model</dt><dd>Canonical case metadata</dd></div>
+        </dl>
+    </header>
+
+    <section class="bsintel-registry" aria-labelledby="bsintel-registry-title">
+        <div class="bscwe-section-heading">
+            <div>
+                <span class="bscwe-kicker">Controlled vocabulary</span>
+                <h2 id="bsintel-registry-title">Published {{ .Kind }} terms</h2>
+            </div>
+            <span>{{ len $terms }} indexed</span>
+        </div>
+        <div class="bsintel-term-grid">
+            {{- range $terms }}
+            <a class="bsintel-term-card" href="{{ .Page.RelPermalink }}">
+                <span>{{ upper $.Kind }}</span>
+                <strong>{{ .Page.Title }}</strong>
+                <p>{{ if eq $.Kind "pattern" }}{{ .Page.Params.definition }}{{ else }}{{ .Page.Params.purpose }}{{ end }}</p>
+                <small>{{ printf "%02d" .Count }} {{ cond (eq .Count 1) "connected case" "connected cases" }}</small>
+            </a>
+            {{- end }}
+        </div>
+    </section>
+</div>
