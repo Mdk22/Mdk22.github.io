@@ -1,5 +1,6 @@
 ---
 title: "CWE-306"
+weight: 306
 cwe_id: "CWE-306"
 cwe_name: "Missing Authentication for Critical Function"
 classification_family: "Authentication and Access Control"

@@ -1,5 +1,6 @@
 ---
 title: "CWE-116"
+weight: 116
 cwe_id: "CWE-116"
 cwe_name: "Improper Encoding or Escaping of Output"
 classification_family: "Output Encoding"

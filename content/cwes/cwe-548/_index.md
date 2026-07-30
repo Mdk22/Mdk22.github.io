@@ -1,5 +1,6 @@
 ---
 title: "CWE-548"
+weight: 548
 cwe_id: "CWE-548"
 cwe_name: "Exposure of Information Through Directory Listing"
 classification_family: "Sensitive File Exposure"

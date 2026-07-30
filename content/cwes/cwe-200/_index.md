@@ -1,5 +1,6 @@
 ---
 title: "CWE-200"
+weight: 200
 cwe_id: "CWE-200"
 cwe_name: "Exposure of Sensitive Information to an Unauthorized Actor"
 classification_family: "Sensitive Information Exposure"

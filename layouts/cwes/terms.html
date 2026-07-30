@@ -1,0 +1,55 @@
+{{- define "main" }}
+{{- $terms := slice -}}
+{{- range $name, $_ := site.Taxonomies.cwes -}}
+    {{- with site.GetPage (printf "/cwes/%s" $name) -}}
+        {{- $terms = $terms | append . -}}
+    {{- end -}}
+{{- end -}}
+{{- $terms = sort $terms "Weight" "asc" -}}
+
+<div class="bscwe bscwe--index">
+    <header class="bscwe-archive-hero">
+        <div>
+            <span class="bscwe-kicker">Connected weakness archive</span>
+            <h1>{{ .Title }}</h1>
+            {{- with .Description }}
+            <p class="bscwe-lead">{{ . }}</p>
+            {{- end }}
+        </div>
+        <dl class="bscwe-archive-stats">
+            <div>
+                <dt>Published weaknesses</dt>
+                <dd>{{ printf "%02d" (len $terms) }}</dd>
+            </div>
+            <div>
+                <dt>Authority</dt>
+                <dd>MITRE CWE</dd>
+            </div>
+        </dl>
+    </header>
+
+    <section class="bscwe-registry" aria-labelledby="bscwe-registry-title">
+        <div class="bscwe-section-heading">
+            <div>
+                <span class="bscwe-kicker">Controlled local registry</span>
+                <h2 id="bscwe-registry-title">Weakness intelligence</h2>
+            </div>
+            <span>{{ printf "%02d" (len $terms) }} entries</span>
+        </div>
+
+        <div class="bscwe-term-grid">
+            {{- range $terms }}
+            {{- $caseCount := len .RegularPages }}
+            <a class="bscwe-term-card" href="{{ .RelPermalink }}">
+                <span class="bscwe-term-card__family">{{ .Params.classification_family }}</span>
+                <strong>{{ .Params.cwe_id }}</strong>
+                <span class="bscwe-term-card__name">{{ .Params.cwe_name }}</span>
+                <span class="bscwe-term-card__count">
+                    {{ printf "%02d" $caseCount }} connected {{ cond (eq $caseCount 1) "case file" "case files" }}
+                </span>
+            </a>
+            {{- end }}
+        </div>
+    </section>
+</div>
+{{- end }}

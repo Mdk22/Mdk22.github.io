@@ -1,0 +1,60 @@
+{{- define "main" }}
+{{- $cases := sort .RegularPages "Date" "desc" -}}
+
+<div class="bscwe bscwe--term">
+    {{- partial "breadcrumbs.html" . }}
+
+    <header class="bscwe-term-hero">
+        <div class="bscwe-term-hero__main">
+            <span class="bscwe-kicker">CWE intelligence / {{ .Params.classification_family }}</span>
+            <h1>{{ .Params.cwe_id }}</h1>
+            <p class="bscwe-official-name">{{ .Params.cwe_name }}</p>
+            {{- with .Content }}
+            <div class="bscwe-interpretation md-content">{{ . }}</div>
+            {{- end }}
+        </div>
+
+        <aside class="bscwe-authority" aria-label="Official CWE authority">
+            <span>Official authority</span>
+            <strong>{{ .Params.source_authority }}</strong>
+            <a href="{{ .Params.mitre_url }}" target="_blank" rel="noopener noreferrer">
+                Open official MITRE entry <span aria-hidden="true">&#8599;</span>
+            </a>
+        </aside>
+    </header>
+
+    <section class="bscwe-connected" aria-labelledby="bscwe-connected-title">
+        <div class="bscwe-section-heading">
+            <div>
+                <span class="bscwe-kicker">Archive connections</span>
+                <h2 id="bscwe-connected-title">Connected case files</h2>
+            </div>
+            <span>{{ printf "%02d" (len $cases) }} {{ cond (eq (len $cases) 1) "record" "records" }}</span>
+        </div>
+
+        <div class="bscwe-case-grid">
+            {{- range $cases }}
+            {{- $isPrimary := eq .Params.primary_cwe $.Params.cwe_id }}
+            <article class="bscwe-case-card">
+                <header>
+                    <span>{{ .Params.case_id }}</span>
+                    <span>{{ upper .Params.platform }}</span>
+                </header>
+                <div class="bscwe-case-card__body">
+                    <span class="bscwe-relationship {{ if $isPrimary }}bscwe-relationship--primary{{ end }}">
+                        {{ if $isPrimary }}Primary weakness{{ else }}Supporting weakness{{ end }}
+                    </span>
+                    <h3><a href="{{ .RelPermalink }}">{{ .Params.lab }}</a></h3>
+                    <p class="bscwe-case-card__classification">{{ .Params.case_classification }}</p>
+                    <p class="bscwe-case-card__summary">{{ .Summary | plainify | htmlUnescape }}</p>
+                </div>
+                <footer>
+                    <span>{{ delimit .Params.case_evidence " / " }}</span>
+                    <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2006-01-02" }}</time>
+                </footer>
+            </article>
+            {{- end }}
+        </div>
+    </section>
+</div>
+{{- end }}
