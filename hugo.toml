@@ -8,6 +8,11 @@ buildDrafts = false
 buildFuture = false
 buildExpired = false
 
+[taxonomies]
+  tag = "tags"
+  category = "categories"
+  cwe = "cwes"
+
 [params]
   author = "Mdk22"
   description = "Evidence-backed web security lab write-ups from authorized educational environments."
