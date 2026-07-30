@@ -1,0 +1,78 @@
+{{- $current := . -}}
+{{- $related := slice -}}
+{{- $candidates := sort (where site.RegularPages "Section" "writeups") "RelPermalink" "asc" -}}
+
+{{- range $candidates -}}
+    {{- if ne .RelPermalink $current.RelPermalink -}}
+        {{- $candidate := . -}}
+        {{- $sharedCWEs := collections.Intersect $current.Params.cwes $candidate.Params.cwes -}}
+        {{- $sharedPatterns := collections.Intersect $current.Params.patterns $candidate.Params.patterns -}}
+        {{- $sharedMethods := collections.Intersect $current.Params.methods $candidate.Params.methods -}}
+        {{- $samePrimary := and $current.Params.primary_cwe $candidate.Params.primary_cwe (eq $current.Params.primary_cwe $candidate.Params.primary_cwe) -}}
+        {{- $meaningfulMatches := add (len $sharedCWEs) (len $sharedPatterns) (len $sharedMethods) -}}
+
+        {{- if or $samePrimary (gt $meaningfulMatches 0) -}}
+            {{- $score := 0 -}}
+            {{- $reasons := slice -}}
+            {{- $supportingCWEOverlap := slice -}}
+
+            {{- if $samePrimary -}}
+                {{- $score = add $score 100 -}}
+                {{- $reasons = $reasons | append (printf "Shared primary CWE: %s" $current.Params.primary_cwe) -}}
+            {{- end -}}
+
+            {{- range $sharedCWEs -}}
+                {{- if not (and $samePrimary (eq . $current.Params.primary_cwe)) -}}
+                    {{- $supportingCWEOverlap = $supportingCWEOverlap | append . -}}
+                {{- end -}}
+            {{- end -}}
+            {{- with $supportingCWEOverlap -}}
+                {{- $score = add $score (mul (len .) 40) -}}
+                {{- $reasons = $reasons | append (printf "Shared CWE: %s" (delimit . ", ")) -}}
+            {{- end -}}
+            {{- with $sharedPatterns -}}
+                {{- $score = add $score (mul (len .) 20) -}}
+                {{- $reasons = $reasons | append (printf "Shared pattern: %s" (delimit . ", ")) -}}
+            {{- end -}}
+            {{- with $sharedMethods -}}
+                {{- $score = add $score (mul (len .) 8) -}}
+                {{- $reasons = $reasons | append (printf "Shared method: %s" (delimit . ", ")) -}}
+            {{- end -}}
+            {{- if eq $current.Params.platform $candidate.Params.platform -}}
+                {{- $score = add $score 1 -}}
+            {{- end -}}
+
+            {{- $rank := printf "%04d|%s" (sub 9999 $score) $candidate.RelPermalink -}}
+            {{- $related = $related | append (dict "Page" $candidate "Score" $score "Rank" $rank "Reasons" $reasons) -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+
+{{- $related = sort $related "Rank" "asc" -}}
+{{- with first 3 $related -}}
+<section class="bsci-related" aria-labelledby="bsci-related-title">
+    <header class="bsci-related__header">
+        <div>
+            <span class="bsci__kicker">Deterministic archive matching</span>
+            <h3 id="bsci-related-title">Related Case Files</h3>
+        </div>
+        <span>{{ printf "%02d" (len .) }} matched</span>
+    </header>
+    <div class="bsci-related__grid">
+        {{- range . -}}
+        {{- $case := .Page -}}
+        <article class="bsci-related-card" data-related-score="{{ .Score }}">
+            <header><span>{{ $case.Params.case_id }}</span><span>{{ upper $case.Params.platform }}</span></header>
+            <div class="bsci-related-card__body">
+                <h4><a href="{{ $case.RelPermalink }}">{{ $case.Params.lab }}</a></h4>
+                <p>{{ $case.Params.case_classification }}</p>
+                <ul aria-label="Relationship reasons">
+                    {{- range .Reasons }}<li>{{ . }}</li>{{ end -}}
+                </ul>
+            </div>
+            <footer><span>{{ delimit $case.Params.case_evidence " / " }}</span><time datetime="{{ $case.Date.Format "2006-01-02" }}">{{ $case.Date.Format "2006-01-02" }}</time></footer>
+        </article>
+        {{- end -}}
+    </div>
+</section>
+{{- end -}}
