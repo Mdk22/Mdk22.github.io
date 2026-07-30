@@ -426,8 +426,69 @@
     font-weight: 650;
 }
 
+.bs2-case-card__intel {
+    display: grid;
+    gap: 9px;
+    margin-top: 16px;
+    padding: 13px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    font-family: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.bs2-case-card__intel-row {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 11px;
+    align-items: start;
+}
+
+.bs2-case-card__intel-row > span {
+    color: var(--secondary);
+    font-size: 0.56rem;
+    font-weight: 700;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.bs2-case-card__intel-row > div {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 4px 7px;
+    align-items: baseline;
+}
+
+.bs2-case-card__intel-row a,
+.bs2-case-card__intel-row small,
+.bs2-case-card__intel-row i {
+    position: relative;
+    z-index: 2;
+    font-size: 0.61rem;
+    font-style: normal;
+    line-height: 1.35;
+}
+
+.bs2-case-card__intel-row a {
+    color: var(--blacksite-cyan);
+    font-weight: 700;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.bs2-case-card__intel-row a:hover {
+    color: var(--blacksite-accent);
+}
+
+.bs2-case-card__intel-row small,
+.bs2-case-card__intel-row i {
+    color: var(--secondary);
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+}
+
 .bs2-case-card__summary {
-    margin: 15px 0 0;
+    margin: 14px 0 0;
     color: var(--secondary);
     font-size: 0.91rem;
     line-height: 1.62;
@@ -654,6 +715,11 @@
     .bs2-case-card__footer {
         align-items: flex-start;
         flex-direction: column;
+    }
+
+    .bs2-case-card__intel-row {
+        grid-template-columns: 74px minmax(0, 1fr);
+        gap: 8px;
     }
 }
 
