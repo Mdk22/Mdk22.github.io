@@ -541,6 +541,245 @@
     border-left: 2px solid var(--blacksite-cyan);
 }
 
+/* Controlled pattern and method registries. */
+.main:has(> .bsintel) {
+    max-width: calc(var(--nav-width) + (var(--gap) * 2));
+}
+
+.bsintel {
+    display: grid;
+    gap: 30px;
+    padding: 34px 0 30px;
+}
+
+.bsintel,
+.bsintel * {
+    box-sizing: border-box;
+}
+
+.bsintel h1,
+.bsintel h2,
+.bsintel-term-card,
+.bsintel-profile,
+.bsintel-association-grid,
+.bsintel-hero dl {
+    font-family: "Cascadia Code", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.bsintel-hero,
+.bsintel-term-hero,
+.bsintel-registry,
+.bsintel-profile,
+.bsintel-associations {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--entry) 91%, transparent), var(--blacksite-surface));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 52px var(--blacksite-shadow);
+}
+
+.bsintel-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.55fr);
+    gap: 34px;
+    align-items: end;
+    padding: clamp(36px, 5vw, 58px);
+    border-left: 3px solid var(--blacksite-cyan);
+}
+
+.bsintel-hero h1,
+.bsintel-term-hero h1 {
+    margin: 10px 0 0;
+    color: var(--primary);
+    font-size: clamp(2.35rem, 6vw, 4.2rem);
+    line-height: 1;
+    letter-spacing: -0.06em;
+}
+
+.bsintel-hero p,
+.bsintel-term-hero p {
+    max-width: 740px;
+    margin: 20px 0 0;
+    color: var(--secondary);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+.bsintel-hero dl {
+    margin: 0;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 2px solid var(--blacksite-accent);
+}
+
+.bsintel-hero dl div {
+    padding: 15px 17px;
+    border-bottom: 1px solid var(--border);
+}
+
+.bsintel-hero dl div:last-child {
+    border-bottom: 0;
+}
+
+.bsintel-hero dt,
+.bsintel-hero dd {
+    margin: 0;
+}
+
+.bsintel-hero dt {
+    color: var(--secondary);
+    font-size: 0.61rem;
+    letter-spacing: 0.065em;
+    text-transform: uppercase;
+}
+
+.bsintel-hero dd {
+    margin-top: 6px;
+    color: var(--primary);
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.bsintel-registry,
+.bsintel-associations {
+    padding: clamp(27px, 4vw, 42px);
+}
+
+.bsintel-term-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.bsintel-term-card {
+    display: flex;
+    min-height: 240px;
+    padding: 21px;
+    flex-direction: column;
+    color: var(--primary);
+    background: linear-gradient(150deg, var(--code-bg), var(--entry));
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--blacksite-cyan);
+    border-radius: var(--radius);
+    text-decoration: none;
+}
+
+.bsintel-term-card:hover {
+    color: var(--primary);
+    border-color: var(--blacksite-accent);
+    box-shadow: 0 14px 34px var(--blacksite-shadow);
+    transform: translateY(-2px);
+}
+
+.bsintel-term-card > span,
+.bsintel-term-card small {
+    color: var(--secondary);
+    font-size: 0.59rem;
+    letter-spacing: 0.065em;
+    text-transform: uppercase;
+}
+
+.bsintel-term-card strong {
+    margin-top: 14px;
+    color: var(--blacksite-cyan);
+    font-size: 1rem;
+    line-height: 1.35;
+}
+
+.bsintel-term-card p {
+    margin: 13px 0 0;
+    color: var(--secondary);
+    font-family: var(--font-primary, system-ui, sans-serif);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.bsintel-term-card small {
+    margin-top: auto;
+    padding-top: 18px;
+    color: var(--blacksite-accent);
+}
+
+.bsintel--term > .breadcrumbs {
+    margin-bottom: -8px;
+}
+
+.bsintel-term-hero {
+    padding: clamp(34px, 5vw, 58px);
+    border-left: 3px solid var(--blacksite-cyan);
+}
+
+.bsintel-term-hero h1 {
+    max-width: 950px;
+    font-size: clamp(2.15rem, 5vw, 3.8rem);
+}
+
+.bsintel-profile {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    overflow: hidden;
+}
+
+.bsintel-profile article {
+    padding: 25px 27px;
+    border-right: 1px solid var(--border);
+}
+
+.bsintel-profile article:last-child {
+    border-right: 0;
+}
+
+.bsintel-profile article > span,
+.bsintel-association-grid > div > span {
+    color: var(--blacksite-accent);
+    font-size: 0.61rem;
+    font-weight: 700;
+    letter-spacing: 0.065em;
+    text-transform: uppercase;
+}
+
+.bsintel-profile p,
+.bsintel-profile ul {
+    margin: 14px 0 0;
+    color: var(--secondary);
+    font-family: var(--font-primary, system-ui, sans-serif);
+    font-size: 0.88rem;
+    line-height: 1.65;
+}
+
+.bsintel-profile ul {
+    padding-left: 19px;
+}
+
+.bsintel-association-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+}
+
+.bsintel-association-grid > div > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 13px;
+}
+
+.bsintel-association-grid a {
+    padding: 7px 9px;
+    color: var(--blacksite-cyan);
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-size: 0.62rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+.bsintel-association-grid a:hover {
+    color: var(--blacksite-accent);
+    border-color: var(--blacksite-accent);
+}
+
 @media (max-width: 820px) {
     .bscwe-archive-hero,
     .bscwe-term-hero {
@@ -549,6 +788,14 @@
 
     .bscwe-authority {
         width: 100%;
+    }
+
+    .bsintel-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .bsintel-term-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -592,6 +839,34 @@
     .bsci__block:last-child {
         border-bottom: 0;
     }
+
+    .bsintel {
+        gap: 22px;
+        padding-top: 20px;
+    }
+
+    .bsintel-term-grid,
+    .bsintel-association-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bsintel-term-card {
+        min-height: 0;
+    }
+
+    .bsintel-profile {
+        grid-template-columns: 1fr;
+    }
+
+    .bsintel-profile article,
+    .bsintel-profile article:last-child {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .bsintel-profile article:last-child {
+        border-bottom: 0;
+    }
 }
 
 @media (max-width: 480px) {
@@ -622,10 +897,18 @@
         padding-right: 20px;
         padding-left: 20px;
     }
+
+    .bsintel-hero,
+    .bsintel-term-hero,
+    .bsintel-registry,
+    .bsintel-associations {
+        padding: 24px 20px;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .bscwe-term-card:hover {
+    .bscwe-term-card:hover,
+    .bsintel-term-card:hover {
         transform: none;
     }
 }
