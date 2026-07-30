@@ -719,7 +719,7 @@ pre {
         position: relative;
     }
 
-    .nav {
+    .header-nav {
         padding-top: 8px;
         padding-bottom: 8px;
     }
@@ -754,6 +754,54 @@ pre {
 
     .post-content h2 {
         margin-top: 2.2em;
+    }
+}
+
+@media (max-width: 600px) {
+    .header-nav {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        line-height: normal;
+    }
+
+    .logo {
+        width: 100%;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .logo a {
+        min-width: 0;
+        font-size: clamp(1rem, 4.2vw, 1.25rem);
+        line-height: 1.25;
+        white-space: nowrap;
+    }
+
+    .logo-switches {
+        flex: 0 0 auto;
+        min-height: auto;
+    }
+
+    #theme-toggle {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+        justify-content: center;
+    }
+
+    #menu {
+        width: 100%;
+        margin-top: 0;
+        overflow-x: auto;
+        line-height: 1.3;
+    }
+
+    #menu a {
+        display: inline-flex;
+        align-items: center;
+        min-height: 38px;
     }
 }
 
