@@ -8,6 +8,7 @@
 {{- $curlCount := len (where $cases "Params.case_independent_curl" true) -}}
 {{- $clientCount := len (where $cases "Params.case_family" "client-side-injection") -}}
 {{- $accessCount := len (where $cases "Params.case_family" "access-exposure") -}}
+{{- $serverCount := len (where $cases "Params.case_family" "server-side-injection") -}}
 
 <div class="bs2-home">
     {{- if gt $publishedCount 0 }}
@@ -161,6 +162,7 @@
             <div class="bs2-stat"><strong>{{ printf "%02d" $curlCount }}</strong><span>Independent curl validations</span></div>
             <div class="bs2-stat"><strong>{{ printf "%02d" $clientCount }}</strong><span>Client-side injection cases</span></div>
             <div class="bs2-stat"><strong>{{ printf "%02d" $accessCount }}</strong><span>Access / exposure cases</span></div>
+            <div class="bs2-stat"><strong>{{ printf "%02d" $serverCount }}</strong><span>Server-side injection cases</span></div>
         </div>
     </section>
 
