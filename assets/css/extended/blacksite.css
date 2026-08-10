@@ -757,6 +757,143 @@ pre {
     }
 }
 
+/* =========================================================
+   MDK22 BLACKSITE PHASE 1.2
+   Light-mode field dossier surfaces and restrained motion.
+   Dark-mode tokens and static appearance remain unchanged.
+   ========================================================= */
+
+:root[data-theme="light"] {
+    --theme: #edede6;
+    --entry: #f9f8f3;
+    --tertiary: #d6d8d0;
+    --code-bg: #e5e6de;
+    --border: #c9ccc3;
+    --blacksite-accent: #6a8e00;
+    --blacksite-accent-bright: #7aa600;
+    --blacksite-grid: rgba(38, 48, 43, 0.022);
+    --blacksite-glow: rgba(106, 142, 0, 0.13);
+    --blacksite-surface: rgba(249, 248, 243, 0.86);
+    --blacksite-shadow: rgba(29, 37, 34, 0.1);
+}
+
+:root[data-theme="light"] body,
+:root[data-theme="light"] .list {
+    background-color: var(--theme);
+    background-image:
+        radial-gradient(circle at 16% -8%, rgba(137, 168, 38, 0.16), transparent 30%),
+        radial-gradient(circle at 91% 13%, rgba(37, 112, 126, 0.075), transparent 25%),
+        linear-gradient(rgba(38, 48, 43, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(38, 48, 43, 0.018) 1px, transparent 1px),
+        linear-gradient(115deg, rgba(255, 255, 255, 0.58), rgba(237, 237, 230, 0.14));
+    background-size: auto, auto, 44px 44px, 44px 44px, auto;
+}
+
+:root[data-theme="light"] body {
+    transition: background-color 180ms ease, color 180ms ease;
+}
+
+:root[data-theme="light"] .header {
+    background: rgba(249, 248, 243, 0.78);
+    box-shadow: 0 9px 28px rgba(29, 37, 34, 0.08);
+}
+
+:root[data-theme="light"] #menu a::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    bottom: 4px;
+    left: 10px;
+    height: 1px;
+    background: var(--blacksite-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 180ms ease;
+}
+
+:root[data-theme="light"] #menu a:hover::after,
+:root[data-theme="light"] #menu .active::after {
+    transform: scaleX(1);
+}
+
+:root[data-theme="light"] #menu .active {
+    border-bottom-color: transparent;
+}
+
+:root[data-theme="light"] #theme-toggle {
+    border-radius: 3px;
+    transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+:root[data-theme="light"] #theme-toggle:hover {
+    background: color-mix(in srgb, var(--blacksite-accent) 9%, transparent);
+    transform: rotate(8deg);
+}
+
+:root[data-theme="light"] #theme-toggle:active,
+:root[data-theme="light"] .bs2-button:active,
+:root[data-theme="light"] .bsarc-family button:active {
+    transform: translateY(1px) scale(0.985);
+}
+
+:root[data-theme="light"] .post-entry,
+:root[data-theme="light"] .bs2-case-card,
+:root[data-theme="light"] .bs2-path,
+:root[data-theme="light"] .bscwe-term-card,
+:root[data-theme="light"] .bsintel-term-card,
+:root[data-theme="light"] .bsci-related-card {
+    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+:root[data-theme="light"] .post-entry,
+:root[data-theme="light"] .bs2-case-card,
+:root[data-theme="light"] .bs2-path,
+:root[data-theme="light"] .bscwe-term-card,
+:root[data-theme="light"] .bsintel-term-card,
+:root[data-theme="light"] .bsci-related-card,
+:root[data-theme="light"] details.toc {
+    box-shadow: 0 14px 36px rgba(29, 37, 34, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="light"] .post-entry:hover,
+:root[data-theme="light"] .bs2-case-card:hover,
+:root[data-theme="light"] .bs2-path:hover,
+:root[data-theme="light"] .bscwe-term-card:hover,
+:root[data-theme="light"] .bsintel-term-card:hover,
+:root[data-theme="light"] .bsci-related-card:hover {
+    box-shadow: 0 20px 42px rgba(29, 37, 34, 0.14), 0 0 0 1px var(--blacksite-glow);
+}
+
+:root[data-theme="light"] .post-entry::before {
+    width: 3px;
+    opacity: 0.78;
+    transition: opacity 180ms ease, width 180ms ease;
+}
+
+:root[data-theme="light"] .post-entry:hover::before {
+    width: 5px;
+}
+
+:root[data-theme="light"] .post-content a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root[data-theme="light"] body,
+    :root[data-theme="light"] #theme-toggle,
+    :root[data-theme="light"] .post-entry,
+    :root[data-theme="light"] .bs2-case-card,
+    :root[data-theme="light"] .bs2-path,
+    :root[data-theme="light"] .bscwe-term-card,
+    :root[data-theme="light"] .bsintel-term-card,
+    :root[data-theme="light"] .bsci-related-card,
+    :root[data-theme="light"] .post-entry::before,
+    :root[data-theme="light"] #menu a::after {
+        transition: none;
+    }
+}
+
 @media (max-width: 600px) {
     .header-nav {
         display: grid;
