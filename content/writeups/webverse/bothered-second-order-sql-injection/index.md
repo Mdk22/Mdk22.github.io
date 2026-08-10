@@ -22,6 +22,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-009"
+case_featured: true
+case_summary_short: "A stored username reached a later donation-history SQL consumer, producing a verified second-order SQL injection and a bounded objective read."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Second-Order SQL Injection"
 case_family: "server-side-injection"

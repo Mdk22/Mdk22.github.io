@@ -1,0 +1,41 @@
+{{- $case := . -}}
+{{- $primarySlug := $case.Params.primary_cwe | urlize -}}
+{{- $primaryPage := site.GetPage (printf "/cwes/%s" $primarySlug) -}}
+{{- $methodPreview := first 1 $case.Params.methods -}}
+{{- $methodCount := len $case.Params.methods -}}
+{{- $summary := $case.Summary -}}
+{{- with $case.Params.case_summary_short }}{{- $summary = . -}}{{- end -}}
+{{- $searchText := lower (printf "%s %s %s %s %s" $case.Params.case_id $case.Params.lab $case.Params.case_classification $case.Params.primary_cwe $summary) -}}
+<article class="bs2-case-card" data-archive-card data-family="{{ $case.Params.case_family | urlize }}" data-cwe="{{ $case.Params.primary_cwe | urlize }}" data-evidence="{{ delimit $case.Params.case_evidence "|" }}" data-search="{{ $searchText }}">
+    <header class="bs2-case-card__header">
+        <span>{{ $case.Params.case_id }}</span>
+        <a class="bs2-case-card__platform" href="https://webverselabs-pro.com/" target="_blank" rel="noopener noreferrer"><strong>WebVerse</strong> <strong>Pro</strong></a>
+    </header>
+    <div class="bs2-case-card__body">
+        <p class="bs2-case-card__status">{{ $case.Params.case_status }}</p>
+        <h3><a href="{{ $case.RelPermalink }}">{{ $case.Params.lab }}</a></h3>
+        <p class="bs2-case-card__class">{{ $case.Params.case_classification }}</p>
+        <div class="bs2-case-card__intel" aria-label="Case intelligence summary">
+            <div class="bs2-case-card__intel-row">
+                <span>Primary CWE</span>
+                <div>{{ with $primaryPage }}<a href="{{ .RelPermalink }}">{{ .Params.cwe_id }}</a>{{ end }}</div>
+            </div>
+            <div class="bs2-case-card__intel-row">
+                <span>Method</span>
+                <div>
+                    {{- range $methodPreview -}}
+                    {{- $methodSlug := . | urlize -}}
+                    {{- with site.GetPage (printf "/methods/%s" $methodSlug) }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end -}}
+                    {{- end -}}
+                    {{- if gt $methodCount 1 }}<small>+{{ sub $methodCount 1 }} more</small>{{ end -}}
+                </div>
+            </div>
+        </div>
+        <p class="bs2-case-card__summary">{{ $summary | plainify | htmlUnescape }}</p>
+    </div>
+    <footer class="bs2-case-card__footer">
+        <span>{{ delimit $case.Params.case_evidence " / " }}</span>
+        <time datetime="{{ $case.Date.Format "2006-01-02" }}">{{ $case.Date.Format "2006-01-02" }}</time>
+    </footer>
+    <a class="bs2-case-card__link" href="{{ $case.RelPermalink }}" aria-label="Open {{ $case.Title | plainify }}"></a>
+</article>
