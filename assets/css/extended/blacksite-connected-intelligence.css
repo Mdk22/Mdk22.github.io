@@ -662,6 +662,11 @@
     line-height: 1.45;
 }
 
+.bsci-related-card__reason--root { border-left-color: var(--blacksite-accent); }
+.bsci-related-card__reason--cwe { border-left-color: var(--blacksite-cyan); }
+.bsci-related-card__reason--pattern { border-left-color: #8aa9ff; }
+.bsci-related-card__reason--method { border-left-color: #b48cff; }
+
 /* Controlled pattern and method registries. */
 .main:has(> .bsintel) {
     max-width: calc(var(--nav-width) + (var(--gap) * 2));

@@ -1,0 +1,62 @@
+{{- define "main" -}}
+{{- $cases := where site.RegularPages "Section" "writeups" -}}
+{{- $cases = where $cases "Params.case_id" "ne" nil -}}
+{{- $cases = sort $cases "Date" "desc" -}}
+{{- $cwes := slice -}}
+{{- $evidence := slice -}}
+{{- $families := slice -}}
+{{- range $cases -}}
+    {{- $cwes = $cwes | append .Params.primary_cwe -}}
+    {{- $evidence = $evidence | append .Params.case_evidence -}}
+    {{- $families = $families | append .Params.case_family -}}
+{{- end -}}
+{{- $cwes = sort (uniq $cwes) -}}
+{{- $evidence = sort (uniq $evidence) -}}
+{{- $families = uniq $families -}}
+<div class="bs2-home bsarc">
+    <section class="bsarc-hero" aria-labelledby="bsarc-title">
+        <div>
+            <span class="bs2-kicker">Full research corpus</span>
+            <h1 id="bsarc-title">Case Archive</h1>
+            <p>{{ .Content | plainify }}</p>
+        </div>
+        <dl>
+            <div><dt>Published cases</dt><dd>{{ printf "%02d" (len $cases) }}</dd></div>
+            <div><dt>Root-cause families</dt><dd>{{ printf "%02d" (len $families) }}</dd></div>
+            <div><dt>Primary CWEs</dt><dd>{{ printf "%02d" (len $cwes) }}</dd></div>
+            <div><dt>Filter model</dt><dd>Live</dd></div>
+        </dl>
+    </section>
+
+    <section class="bsarc-controls" aria-labelledby="bsarc-filter-title" data-archive-filter>
+        <div class="bsarc-controls__intro">
+            <div><span class="bs2-kicker">Progressive archive discovery</span><h2 id="bsarc-filter-title">Find a case file</h2></div>
+            <p>Search by case ID, lab, classification, CWE, evidence source, or family.</p>
+        </div>
+        <div class="bsarc-filters">
+            <label>Search case ID, lab, classification, or CWE<input type="search" placeholder="Search the archive" data-archive-search></label>
+            <label>Primary CWE<select data-archive-cwe><option value="">All primary CWEs</option>{{ range $cwes }}<option value="{{ . | urlize }}">{{ . }}</option>{{ end }}</select></label>
+            <label>Evidence source<select data-archive-evidence><option value="">All evidence sources</option>{{ range $evidence }}<option value="{{ . }}">{{ . }}</option>{{ end }}</select></label>
+        </div>
+        <div class="bsarc-family" aria-label="Filter by root-cause family">
+            <button type="button" data-archive-family="" aria-pressed="true">All</button>
+            <button type="button" data-archive-family="access-exposure" aria-pressed="false">Access / exposure</button>
+            <button type="button" data-archive-family="server-side-injection" aria-pressed="false">Server-side injection</button>
+            <button type="button" data-archive-family="client-side-injection" aria-pressed="false">Client-side injection</button>
+        </div>
+    </section>
+
+    <section class="bsarc-results" aria-labelledby="bsarc-results-title">
+        <div class="bsarc-results__header">
+            <div><span class="bs2-kicker">Full archive</span><h2 id="bsarc-results-title">Published case files</h2></div>
+            <span data-archive-count>{{ printf "%02d" (len $cases) }} records</span>
+        </div>
+        <div class="bs2-case-grid bs2-case-grid--archive" data-archive-results>
+            {{- range $cases }}{{ partial "archive-case-card.html" . }}{{ end -}}
+        </div>
+        <p class="bsarc-empty" data-archive-empty hidden>No case file matches the selected archive filters.</p>
+    </section>
+</div>
+{{- $archiveScript := resources.Get "js/archive-filter.js" | minify | fingerprint -}}
+<script src="{{ $archiveScript.RelPermalink }}" integrity="{{ $archiveScript.Data.Integrity }}" defer></script>
+{{- end -}}

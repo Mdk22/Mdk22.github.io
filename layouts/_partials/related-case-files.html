@@ -49,6 +49,7 @@
 {{- end -}}
 
 {{- $related = sort $related "Rank" "asc" -}}
+{{- $relatedTotal := len $related -}}
 {{- with first 3 $related -}}
 <section class="bsci-related" aria-labelledby="bsci-related-title">
     <header class="bsci-related__header">
@@ -56,7 +57,7 @@
             <span class="bsci__kicker">Deterministic archive matching</span>
             <h3 id="bsci-related-title">Related Case Files</h3>
         </div>
-        <span>{{ printf "%02d" (len .) }} matched</span>
+        <span>Top {{ printf "%02d" (len .) }} of {{ printf "%02d" $relatedTotal }}</span>
     </header>
     <div class="bsci-related__grid">
         {{- range . -}}
@@ -67,7 +68,11 @@
                 <h4><a href="{{ $case.RelPermalink }}">{{ $case.Params.lab }}</a></h4>
                 <p>{{ $case.Params.case_classification }}</p>
                 <ul aria-label="Relationship reasons">
-                    {{- range .Reasons }}<li>{{ . }}</li>{{ end -}}
+                    {{- range .Reasons -}}
+                    {{- $reasonClass := "bsci-related-card__reason--method" -}}
+                    {{- if hasPrefix . "Shared primary CWE:" -}}{{- $reasonClass = "bsci-related-card__reason--root" -}}{{- else if hasPrefix . "Shared CWE:" -}}{{- $reasonClass = "bsci-related-card__reason--cwe" -}}{{- else if hasPrefix . "Shared pattern:" -}}{{- $reasonClass = "bsci-related-card__reason--pattern" -}}{{- end -}}
+                    <li class="bsci-related-card__reason {{ $reasonClass }}">{{ . }}</li>
+                    {{- end -}}
                 </ul>
             </div>
             <footer><span>{{ delimit $case.Params.case_evidence " / " }}</span><time datetime="{{ $case.Date.Format "2006-01-02" }}">{{ $case.Date.Format "2006-01-02" }}</time></footer>
