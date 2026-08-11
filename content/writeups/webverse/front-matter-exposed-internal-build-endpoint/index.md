@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Front Matter — From Production HTML Comments to an Exposed Internal Build Endpoint"
 date: 2026-07-30T00:00:00+02:00
-lastmod: 2026-07-30T00:00:00+02:00
+lastmod: 2026-08-11T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A Caido- and curl-backed reproduction of production HTML comments exposing a publicly reachable internal build endpoint through GET /api/internal/build."
@@ -53,9 +53,11 @@ methods:
   - "Disclosed Route Follow-Up"
   - "Anonymous Replay"
   - "Independent curl Verification"
+  - "Cross-Client Verification"
+  - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted everywhere so that only the `WEBVERSE` prefix remains visible. The complete flag and raw private evidence are excluded from the public manuscript and image bundle.
+> **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is represented as `WEBVERSE{REDACTED}`. Dynamic lab-host values use `<LAB_HOST>`, and session material and private raw evidence are excluded from the public manuscript and image bundle.
 
 ## Executive Summary
 
@@ -75,7 +77,7 @@ A controlled Caido Replay request removed session credentials and requested the 
 | Difficulty | Easy |
 | Status | Solved |
 | Date | 30 July 2026 |
-| Target | `https://d1bc5699-4414-front-matter-acac3.challenges.webverselabs-pro.com/` |
+| Target | `https://<LAB_HOST>/` |
 | Primary issue | Exposed internal endpoint |
 | Secondary issue | Sensitive information in production HTML comments |
 
@@ -139,7 +141,7 @@ The investigation began with the public storefront rather than with a route copi
 
 ```http
 GET / HTTP/1.1
-Host: d1bc5699-4414-front-matter-acac3.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
 ```
 
@@ -216,7 +218,7 @@ The captured Colophon request was sent to Replay and only the path was changed t
 
 ```http
 GET /api/internal/build HTTP/1.1
-Host: d1bc5699-4414-front-matter-acac3.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 Accept: */*
 
 # No Cookie
@@ -232,16 +234,51 @@ The server returned a successful response to the anonymous request. The plain-te
 
 ![Caido response from the internal build endpoint with the complete flag raster-redacted.](07-caido-internal-build-response-redacted.png)
 
-*Figure 7 — Internal build endpoint response. Caido shows HTTP `200`, `text/plain`, the build ID, status `ok`, and a redacted WebVerse flag; only the `WEBVERSE` prefix remains visible.*
+*Figure 7 — Internal build endpoint response. Caido shows HTTP `200`, `text/plain`, the build ID, status `ok`, and the public-safe `WEBVERSE{REDACTED}` flag representation.*
 
-## 9. Independent curl Verification
+## 9. Reproduction Commands and Payloads
 
-A second client independently requested the same endpoint without session material. This ruled out a Caido display artifact and produced a portable matching response during the same session. The public manuscript retains only the `WEBVERSE` prefix.
+No standalone payload value was used in this reproduction. The security-relevant mutation was the request path, while the decisive access-control control was the removal of session material before requesting the disclosed endpoint. These blocks include only requests and commands actually used and verified during the authorized session.
+
+### R-01 — Storefront baseline
+
+```http
+GET / HTTP/1.1
+Host: <LAB_HOST>
+```
+
+Expected semantic result: HTTP `200` with Front Matter HTML containing a same-origin link to `/colophon`. This establishes the baseline route; it does not itself prove sensitive disclosure.
+
+### R-02 — Colophon source request
+
+```http
+GET /colophon HTTP/1.1
+Host: <LAB_HOST>
+```
+
+Expected semantic result: HTTP `200` with the Colophon HTML and the production comment naming `/api/internal/build`, the intended off-network boundary, and the response-body oracle.
+
+### R-03 — Anonymous internal-endpoint request
+
+```http
+GET /api/internal/build HTTP/1.1
+Host: <LAB_HOST>
+Accept: */*
+
+# No Cookie
+# No Authorization
+# No request body
+```
+
+Expected semantic result: HTTP `200` with `text/plain` content containing a build identifier, status `ok`, and a current-instance flag represented publicly as `WEBVERSE{REDACTED}`. The request proves anonymous external read access; it does not establish whether `GET` also initiated server-side build activity.
+
+### C-01 — Independent `curl` verification
+
+A second client independently requested the same endpoint without session material. This ruled out a Caido display artifact and produced a portable matching response during the same session. The private local output-capture filename is intentionally omitted from the public command.
 
 ```bash
 curl --silent --show-error --include \
-  'https://d1bc5699-4414-front-matter-acac3.challenges.webverselabs-pro.com/api/internal/build' \
-  | tee Front_Matter_EV05_Curl_Internal_Build.txt
+  'https://<LAB_HOST>/api/internal/build'
 ```
 
 ```text
@@ -251,14 +288,14 @@ content-length: 87
 
 build-id: 2026.05.03-a91c4
 status: ok
-flag: WEBVERSE
+flag: WEBVERSE{REDACTED}
 ```
 
-![Raw curl reproduction retaining only the WEBVERSE prefix.](08-curl-internal-build-prefix-only.png)
+![Raw curl reproduction with the temporary host and current-instance flag redacted.](08-curl-internal-build-prefix-only.png)
 
-*Figure 8 — Raw curl reproduction. The terminal independently reproduces the HTTP `200` response. The public screenshot retains only the `WEBVERSE` prefix.*
+*Figure 8 — Raw curl reproduction. The terminal independently reproduces the HTTP `200` response with `<LAB_HOST>` and `WEBVERSE{REDACTED}` used in the public version.*
 
-> **Protocol note:** Caido Replay displayed the transaction as HTTP/1.1, while `curl` negotiated HTTP/2. This is not a conflicting result: both clients reached the same endpoint and received the same status, content type, build metadata, and flag. For publication, the complete flag is withheld and only `WEBVERSE` remains visible.
+> **Protocol note:** Caido Replay displayed the transaction as HTTP/1.1, while `curl` negotiated HTTP/2. This is not a conflicting result: both clients reached the same endpoint and received the same status, content type, build metadata, and flag. For publication, the complete flag is withheld and represented as `WEBVERSE{REDACTED}`.
 
 ## 10. Final Platform Oracle
 
@@ -270,7 +307,7 @@ The full flag recovered from the raw response was submitted to WebVerse. The pla
 
 ```text
 CURRENT-INSTANCE FLAG
-WEBVERSE
+WEBVERSE{REDACTED}
 ```
 
 ### Tool-Specific Evidence Interpretation
@@ -279,7 +316,7 @@ WEBVERSE
 | --- | --- |
 | Caido History | The legitimate storefront-to-Colophon application flow and the exact production HTML disclosure. |
 | Caido Replay | The internal endpoint remained reachable after session credentials were removed. |
-| `curl` | A second client reproduced the matching response during the same session and confirmed the current-instance flag; the public manuscript retains only the `WEBVERSE` prefix. |
+| `curl` | A second client reproduced the matching response during the same session and confirmed the current-instance flag; the public manuscript represents it as `WEBVERSE{REDACTED}`. |
 | WebVerse UI | The recovered flag was accepted and the challenge was marked solved. |
 
 ## 11. Root Cause
@@ -347,7 +384,7 @@ In an equivalent production environment, the impact would depend on the actual d
 
 ```bash
 curl --silent --show-error --include \
-  'https://d1bc5699-4414-front-matter-acac3.challenges.webverselabs-pro.com/api/internal/build'
+  'https://<LAB_HOST>/api/internal/build'
 ```
 
 ## 16. Final Proof
@@ -361,7 +398,7 @@ curl --silent --show-error --include \
 | Content-Type | `text/plain; charset=utf-8` |
 | Build ID | `2026.05.03-a91c4` |
 | Build status | `ok` |
-| Flag | `WEBVERSE` |
+| Flag | `WEBVERSE{REDACTED}` |
 | Platform result | Challenge Solved - Flag accepted |
 
 ## 17. Conclusion
@@ -382,5 +419,5 @@ CONFIRMED - A production HTML comment disclosed an internal route that was exter
 | Caido storefront request/response | Current-host baseline and public `/colophon` route. |
 | Caido Colophon request/response | Production HTML comment and exact internal route disclosure. |
 | Caido Replay request/response | Anonymous access to `/api/internal/build` and sensitive response. |
-| `Front_Matter_EV05_Curl_Internal_Build.txt` | Private raw HTTP response confirming the current-instance flag; only `WEBVERSE` is shown publicly. |
+| Private raw HTTP response | Current-instance flag verification; the public manuscript represents it as `WEBVERSE{REDACTED}`. |
 | `Front_Matter.png` | WebVerse solved-state confirmation. |
