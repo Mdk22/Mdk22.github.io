@@ -24,7 +24,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-010"
-case_featured: true
+case_featured: false
 case_summary_short: "Public review-filter SQLite SQL injection with discarded result rows, a two-run conditional-error oracle, and bounded direct exception leakage from internal_config."
 case_status: "SOLVED / VERIFIED"
 case_classification: "SQLite SQL Injection / Verbose Error Disclosure"
