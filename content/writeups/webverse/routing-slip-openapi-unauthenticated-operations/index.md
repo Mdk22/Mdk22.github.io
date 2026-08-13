@@ -24,7 +24,7 @@ difficulty: "Unspecified"
 showToc: true
 TocOpen: false
 case_id: "CASE-011"
-case_featured: true
+case_featured: false
 case_summary_short: "A public OpenAPI auth override exposed an unauthenticated internal liveness operation and sensitive runtime metadata."
 case_status: "VERIFIED / PREVIOUSLY SOLVED"
 case_classification: "Missing Authentication / Sensitive Information Disclosure"
