@@ -30,6 +30,13 @@ buildExpired = false
   Title = "Mdk22 Security Write-Ups"
   Content = "Evidence-backed technical write-ups from authorized web security laboratories and deliberately vulnerable training environments."
 
+[params.assets]
+  favicon = "favicon.ico"
+  favicon16x16 = "favicon-16x16.png"
+  favicon32x32 = "favicon-32x32.png"
+  apple_touch_icon = "apple-touch-icon.png"
+  safari_pinned_tab = "safari-pinned-tab.svg"
+
 [[params.socialIcons]]
   name = "github"
   url = "https://github.com/Mdk22"

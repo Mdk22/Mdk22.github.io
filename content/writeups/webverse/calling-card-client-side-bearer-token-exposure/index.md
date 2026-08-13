@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Calling Card — Client-Side Bearer Token Exposure to an Internal Probe"
 date: 2026-07-31T00:00:00+02:00
-lastmod: 2026-07-31T00:00:00+02:00
+lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A public disclosure page exposed a hard-coded bearer token that authorized an internal probe returning build data and the lab flag."
@@ -74,7 +74,7 @@ A controlled Caido Replay comparison established the security effect. The endpoi
 | Difficulty | Easy |
 | Status | Solved / Verified |
 | Date | 31 July 2026 |
-| Target | https://30763c5c-4414-calling-card-730b2.challenges.webverselabs-pro.com/ |
+| Target | `https://<LAB_HOST>/` |
 | Primary issue | Hard-coded bearer credential exposed in client-side JavaScript |
 | Security effect | Unauthorized access to an internal probe response containing build metadata and the challenge secret |
 
@@ -146,7 +146,7 @@ The investigation began by validating the two relevant security.txt locations on
 
 ```http
 GET /security.txt HTTP/1.1
-Host: 30763c5c-4414-calling-card-730b2.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 ```
 
 ![Root security.txt request](01-caido-root-security-txt-request.png)
@@ -280,7 +280,7 @@ curl --silent --show-error --include \
   --request POST \
   --header 'Accept: application/json' \
   --header 'Authorization: Bearer <REDACTED>' \
-  'https://30763c5c-4414-calling-card-730b2.challenges.webverselabs-pro.com/internal/probe' \
+  'https://<LAB_HOST>/internal/probe' \
   | tee Calling_Card_EV09_Curl_Valid_Token_Response_PRIVATE.txt
 ```
 
@@ -405,7 +405,7 @@ curl --silent --show-error --include \
   --request POST \
   --header 'Accept: application/json' \
   --header 'Authorization: Bearer <REDACTED>' \
-  'https://30763c5c-4414-calling-card-730b2.challenges.webverselabs-pro.com/internal/probe'
+  'https://<LAB_HOST>/internal/probe'
 ```
 
 ## 17. Final Proof

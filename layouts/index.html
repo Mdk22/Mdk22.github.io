@@ -21,9 +21,12 @@
     {{- end -}}
 {{- end -}}
 {{- $recent = first 6 $recent -}}
-{{- $cweCount := len (where site.RegularPages "Section" "cwes") -}}
-{{- $patternCount := len (where site.RegularPages "Section" "patterns") -}}
-{{- $methodCount := len (where site.RegularPages "Section" "methods") -}}
+{{- $cweCount := 0 -}}
+{{- with site.GetPage "/cwes" -}}{{- $cweCount = len .Pages -}}{{- end -}}
+{{- $patternCount := 0 -}}
+{{- with site.GetPage "/patterns" -}}{{- $patternCount = len .Pages -}}{{- end -}}
+{{- $methodCount := 0 -}}
+{{- with site.GetPage "/methods" -}}{{- $methodCount = len .Pages -}}{{- end -}}
 
 <div class="bs2-home">
     {{- if gt $publishedCount 0 }}

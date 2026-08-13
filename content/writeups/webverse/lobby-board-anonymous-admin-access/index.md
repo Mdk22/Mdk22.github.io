@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Lobby Board — From a Next.js Build Manifest to Anonymous Admin Access"
 date: 2026-07-28T00:00:00+02:00
-lastmod: 2026-08-11T00:00:00+02:00
+lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A build-manifest-driven investigation confirming missing server-side authentication on GET /_admin/board."
@@ -121,7 +121,7 @@ A normal navigation to the root path was captured in Caido before any route muta
 
 ```http
 GET / HTTP/1.1
-Host: 69f81455-4414-lobby-board-94e2a.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 ```
 
 ![Caido baseline request confirming the active Lobby Board host and the initial GET request.](01-caido-landing-baseline-request.png)
@@ -147,7 +147,7 @@ The manifest request observed in browser traffic was selected and reproduced in 
 
 ```http
 GET /_next/static/chunks/_buildManifest.js HTTP/1.1
-Host: 69f81455-4414-lobby-board-94e2a.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 ```
 
 ![Caido request for the public Next.js build manifest with the cookie value permanently raster-redacted.](03-caido-build-manifest-request-redacted.png)
@@ -177,7 +177,7 @@ Before following the chunk to child routes, the exact parent route was tested as
 
 ```http
 GET /_admin HTTP/1.1
-Host: 69f81455-4414-lobby-board-94e2a.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 ```
 
 ![Controlled Replay request to the exact admin parent route with the cookie value raster-redacted.](05-caido-admin-parent-request-redacted.png)
@@ -208,7 +208,7 @@ The chunk path disclosed by the manifest was requested directly. This high-infor
 
 ```http
 GET /_next/static/chunks/pages/_admin/admin-chunk.js HTTP/1.1
-Host: 69f81455-4414-lobby-board-94e2a.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 ```
 
 ![Caido request for the admin page chunk identified by the active build manifest.](07-caido-admin-chunk-request.png)
@@ -240,7 +240,7 @@ A clean request was copied into Caido Replay and the path was changed to `/_admi
 
 ```http
 GET /_admin/board HTTP/1.1
-Host: 69f81455-4414-lobby-board-94e2a.challenges.webverselabs-pro.com
+Host: <LAB_HOST>
 
 [No Cookie header]
 [No Authorization header]
