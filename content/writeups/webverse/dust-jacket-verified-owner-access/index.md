@@ -1,7 +1,7 @@
 ---
 title: "WebVerse Dust Jacket — From Public Migration Debris to Verified Owner Access"
 date: 2026-07-29T00:00:00+02:00
-lastmod: 2026-08-11T00:00:00+02:00
+lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A Caido- and curl-backed reproduction of public migration-backup disclosure leading to verified owner access through POST /owner.php."
@@ -124,14 +124,22 @@ Public Dust Jacket storefront
 
 The evidence was collected in this order so that each claim remained narrower than, and fully supported by, the artefact immediately following it.
 
-## 3. Current-Instance Baseline
+## 3. Evidence-Led Chronological Reproduction
+
+The sections below keep every verified request, expected result, screenshot, and narrow conclusion beside the phase in which it was used. Public request models preserve the executed methods and paths while replacing the temporary hostname and reusable secrets with stable placeholders. Caido remains the primary proof layer; the final `curl` differential independently confirms the semantic oracle.
+
+### 3.1 Current-Instance Application Baseline
 
 A normal browser navigation to the root path was captured in Caido before any route mutation. This established the active host, method, request context, and normal application identity.
+
+**R-01 - Root request.**
 
 ```http
 GET / HTTP/1.1
 Host: <LAB_HOST>
 ```
+
+**Expected semantic result:** HTTP 200 with HTML identifying the active Dust Jacket Books application. This establishes current-instance provenance and does not itself prove archive exposure.
 
 ![Caido baseline request confirming the active Dust Jacket host and initial GET / navigation](01-caido-baseline-request.png)
 
@@ -153,9 +161,11 @@ X-Powered-By: PHP/8.2.31
 
 > **Baseline conclusion:** The active application and hostname were confirmed directly from fresh traffic before any known solution route was reproduced.
 
-## 4. Canonical Archive Route
+### 3.2 Canonical Archive Route
 
 The known archive candidate was tested by copying the clean root request into Caido Replay and changing only the path from / to `/archive`. The response was a permanent redirect to the trailing-slash directory form.
+
+**R-02 - Archive candidate.**
 
 ```http
 GET /archive HTTP/1.1
@@ -171,12 +181,15 @@ Location: http://<LAB_HOST>/archive/
 
 The Location header used http while the HTML link referenced https. The differing schemes are consistent with reverse-proxy or origin scheme handling; the exact cause was not established and was not required to validate the finding. The meaningful security signal was narrower: Apache recognized `/archive` as a real directory. A redirect alone did not prove sensitive content exposure.
 
-## 5. Public Directory Listing and Migration Debris
+### 3.3 Public Directory Listing
 
 The canonical path `/archive/` was requested directly. Apache returned `HTTP 200` and an auto-index page titled Index of `/archive`. The listing exposed the complete migration-file inventory.
 
+**R-03 - Canonical directory request.**
+
 ```http
 GET /archive/ HTTP/1.1
+Host: <LAB_HOST>
 
 HTTP/1.1 200 OK
 <title>Index of /archive</title>
@@ -193,9 +206,18 @@ site.zip.old
 
 > **Discovery result:** The directory listing proved unauthenticated file enumeration. It did not yet prove that any listed file contained sensitive or currently useful information.
 
-### 5.1 README Migration Context
+### 3.4 Migration-Debris Context
 
 `README.txt` was small, publicly accessible, and reviewed in full. It explicitly described the directory as migration debris, stated that it should not be linked, and documented that its contents were scheduled for removal after reconciliation.
+
+**R-04 - Public README request.**
+
+```http
+GET /archive/README.txt HTTP/1.1
+Host: <LAB_HOST>
+```
+
+**Expected semantic result:** HTTP 200 with the migration-debris, cleanup, and `DO NOT LINK` context for the indexed files.
 
 ```text
 Migration debris - DO NOT LINK.
@@ -214,16 +236,21 @@ everything in here should be torn down...
 
 > **Exposure context:** The application itself documented that the directory was temporary migration material rather than an intentional public download area.
 
-## 6. Sensitive Configuration Disclosure
+### 3.5 Sensitive Configuration and Consumer Mapping
 
 The critical listed artefact, `config.php.bak`, was retrieved without authentication. The response contained a legacy WordPress configuration snapshot with database connection values, WordPress authentication keys, and a static owner-console key. Reusable secret values are raster-redacted in the figure and represented symbolically below.
 
-```php
+**R-05 - Listed configuration backup.**
+
+```http
 GET /archive/config.php.bak HTTP/1.1
+Host: <LAB_HOST>
 
 HTTP/1.1 200 OK
 Content-Type: application/x-trash
+```
 
+```php
 define('DB_PASSWORD', '<REDACTED>');
 define('AUTH_KEY', '<REDACTED>');
 define('SECURE_AUTH_KEY', '<REDACTED>');
@@ -242,12 +269,15 @@ The source comment established two precise facts: the exposed credential name wa
 
 > **Critical source-level signal:** A credential appearing in a backup does not prove current exploitability. The next steps independently mapped the live consumer and established an invalid-versus-valid runtime differential.
 
-## 7. Owner-Console Request Contract
+### 3.6 Live Owner-Console Contract
 
 A direct GET request to `/owner` returned the current owner-console login form. The HTML established the exact transport slot required to test the exposed key.
 
+**R-06 - Live consumer request.**
+
 ```http
 GET /owner HTTP/1.1
+Host: <LAB_HOST>
 
 HTTP/1.1 200 OK
 <title>Owner console - Dust Jacket Books</title>
@@ -270,12 +300,15 @@ HTTP/1.1 200 OK
 | Negative oracle | Restricted HTML form plus explicit validation error |
 | Positive oracle | `text/plain` response containing `owner: verified` and `build-flag` |
 
-## 8. Controlled Invalid-Key Baseline
+### 3.7 P-01 - Controlled Invalid-Key Baseline
 
 The legitimate form was submitted once with a format-correct but invalid value. Capturing the browser-generated request in Caido confirmed the real `Content-Type` and body encoding before any use of the exposed credential.
 
+**P-01 - Exact non-secret control request.**
+
 ```http
 POST /owner.php HTTP/1.1
+Host: <LAB_HOST>
 Content-Type: application/x-www-form-urlencoded
 
 owner_key=OWN-0000-0000-0000
@@ -301,9 +334,11 @@ That key didn't validate. Try again or contact the bookkeeper.
 
 > **Negative-control interpretation:** `HTTP 200` was shared by both rejected and accepted requests. Authentication success had to be determined from response semantics and `Content-Type`, not status code.
 
-## 9. Active Credential Validation and Owner Verification
+### 3.8 P-02 - Leaked `OWNER_KEY` Validation
 
 The invalid request was copied into Replay. Only the `owner_key` value was changed to the value disclosed in `config.php.bak`. `Cookie` and `Authorization` headers were removed so that the proof isolated the static key from browser-session state.
+
+**P-02 - Partially redacted proof request.**
 
 ```http
 POST /owner.php HTTP/1.1
@@ -335,75 +370,11 @@ build-flag: WEBVERSE{REDACTED}
 
 > **Confirmed credential compromise:** The `OWNER_KEY` retained in the public legacy configuration was accepted by the live owner console without `Cookie` or `Authorization`. This converts a source disclosure into confirmed unauthorized owner-level authentication at the verification endpoint.
 
-## 10. Reproduction Commands and Payloads
+### 3.9 Independent `curl` Differential
 
-The blocks below consolidate only request shapes, payloads, and command-line actions that were actually used and verified during this reproduction. Dynamic lab identifiers and reusable secrets are replaced with stable public placeholders; the nearby Caido and `curl` figures remain the proof layer.
+A separate command-line workflow reproduced the invalid-versus-valid differential outside both the browser and Caido interface. It explicitly sent empty `Cookie` and `Authorization` headers. The public block preserves the executed request shape while replacing the temporary origin and reusable owner key with placeholders.
 
-### 10.1 Baseline Requests
-
-The current-instance route sequence was validated in Caido using the following public-safe HTTP forms. The live hostname is represented by `<LAB_HOST>`; methods and paths match the verified reproduction.
-
-```http
-GET / HTTP/1.1
-Host: <LAB_HOST>
-
-GET /archive HTTP/1.1
-Host: <LAB_HOST>
-
-GET /archive/ HTTP/1.1
-Host: <LAB_HOST>
-
-GET /archive/README.txt HTTP/1.1
-Host: <LAB_HOST>
-
-GET /archive/config.php.bak HTTP/1.1
-Host: <LAB_HOST>
-
-GET /owner HTTP/1.1
-Host: <LAB_HOST>
-```
-
-Expected semantic progression: the root identifies Dust Jacket; `/archive` redirects to `/archive/`; the canonical directory exposes the migration inventory; `README.txt` confirms unintended migration debris; `config.php.bak` exposes redacted configuration secrets and the `OWNER_KEY`-to-`/owner` mapping; `/owner` defines the live `POST /owner.php` form contract. None of these baseline requests alone proves that the exposed `OWNER_KEY` is currently valid.
-
-### 10.2 Negative Control
-
-A format-correct invalid value was submitted before the leaked credential. This control established the request contract and explicit rejection oracle without using any secret.
-
-**P-01 — exact control payload**
-
-```text
-owner_key=OWN-0000-0000-0000
-```
-
-```http
-POST /owner.php HTTP/1.1
-Host: <LAB_HOST>
-Content-Type: application/x-www-form-urlencoded
-
-owner_key=OWN-0000-0000-0000
-```
-
-Expected semantic result: `HTTP 200` with `text/html` content and the explicit message `That key didn't validate. Try again or contact the bookkeeper.` P-01 proves that the form contract accepts the field and rejects an incorrect value; `HTTP 200` by itself is not an authentication-success signal.
-
-### 10.3 Verified Proof Payload
-
-The proof request preserved the same endpoint, method, content type, and parameter while replacing only `owner_key` with the credential disclosed in `config.php.bak`. That credential is reusable and is therefore not published.
-
-**P-02 — partially redacted proof request**
-
-```http
-POST /owner.php HTTP/1.1
-Host: <LAB_HOST>
-Content-Type: application/x-www-form-urlencoded
-
-owner_key=<REDACTED_OWNER_KEY>
-```
-
-Expected semantic result: `HTTP 200` with `text/plain` content, `owner: verified`, and `build-flag: WEBVERSE{REDACTED}`. P-02 proves current validity of the public-backup credential at the owner verification endpoint. It does not prove that other database or WordPress secrets in the backup are active, nor broader owner-console capabilities beyond the returned result.
-
-### 10.4 Independent Command-Line Verification
-
-The successful terminal verification executed the same invalid and valid form submissions with `curl` while explicitly sending empty `Cookie` and `Authorization` headers. The public block preserves the verified request shape but replaces the temporary origin and reusable owner key with placeholders.
+**C-01 - Executed cross-client verification.**
 
 ```bash
 LAB_ORIGIN='https://<LAB_HOST>'
@@ -424,19 +395,7 @@ curl -sS -i \
   "$LAB_ORIGIN/owner.php"
 ```
 
-Expected semantic result: the invalid request returns `text/html` and the validation error; the leaked-key request returns `text/plain`, `owner: verified`, and `WEBVERSE{REDACTED}`. The `curl` commands independently verify the differential, but do not replace the Caido evidence that maps the disclosure source and live request contract.
-
-### 10.5 Expected Results and Evidence Boundary
-
-- Baseline requests establish reachability, directory exposure, migration context, secret disclosure, and the live owner-form contract.
-- P-01 is the exact non-secret control value used to establish the rejection oracle.
-- P-02 preserves the verified proof request shape while intentionally withholding the reusable `OWNER_KEY`.
-- The `curl` differential independently reproduces the same semantic result without a populated `Cookie` or `Authorization` value.
-- The authoritative finding requires the complete chain: public backup disclosure -> disclosed `OWNER_KEY` -> live consumer mapping -> invalid-versus-valid differential -> `owner: verified`.
-
-## 11. Independent curl Reproduction
-
-A separate `curl` workflow reproduced the differential outside both the browser and Caido interface. The public-safe request shapes are consolidated in Section 10.4. The successful script explicitly sent empty `Cookie` and `Authorization` headers, submitted the same invalid and valid form bodies, redacted the flag before public display, and preserved private raw responses separately.
+**Expected semantic result:** the invalid request returns `text/html` and the explicit validation error; the leaked-key request returns `text/plain`, `owner: verified`, and `WEBVERSE{REDACTED}`. The commands independently verify the differential but do not replace the Caido evidence that maps the disclosure source and live request contract.
 
 ![Independent curl verification: invalid key rejected, leaked key accepted, and no Cookie or Authorization headers used](12-curl-owner-key-differential-redacted.png)
 
@@ -446,7 +405,27 @@ The public-safe evidence file recorded the invalid response as `text/html` with 
 
 > **Public evidence handling:** The script itself contained the live `OWNER_KEY` and private raw output contained the full current-instance flag. Those artefacts remain private and are not embedded in this document.
 
-## 12. Technical Root Cause and Classification
+### 3.10 Evidence Closure and Stop Boundary
+
+The authoritative finding requires the complete chain: public archive discovery, migration-debris context, direct configuration retrieval, `OWNER_KEY`-to-`/owner` consumer mapping, an explicit invalid oracle, a single-variable valid-key proof, and an independent cross-client differential.
+
+| Final evidence field | Verified result |
+| --- | --- |
+| Exposed resource | `GET /archive/config.php.bak` |
+| Authentication endpoint | `POST /owner.php` |
+| Request state | No `Cookie` or `Authorization` header |
+| Negative oracle | HTTP 200, `text/html`, explicit validation failure |
+| Positive oracle | HTTP 200, `text/plain`, `owner: verified` |
+| Primary weakness | CWE-219 |
+| Supporting weaknesses | CWE-548 and CWE-798 |
+| Flag | `WEBVERSE{REDACTED}` |
+| Status | Solved / Verified |
+
+> **STOP BOUNDARY**
+>
+> Testing stopped immediately after owner verification, current-instance objective disclosure, and independent curl confirmation. Database credentials, WordPress authentication keys, archive contents beyond the documented read-only chain, and broader owner-console capabilities were not tested.
+
+## 4. Technical Root Cause and Classification
 
 The directory index made the migration files easy to enumerate, but indexing alone was not the complete vulnerability. The confirmed chain required four security failures: sensitive artefacts were deployed under the public document root, backup extensions were served directly, reusable secrets remained embedded in a legacy configuration snapshot, and the same static `OWNER_KEY` was still trusted by the current owner console.
 
@@ -470,7 +449,7 @@ deployment pipeline -> reject sensitive artefacts -> secrets manager -> named us
 
 **Classification references:** [CWE-219](https://cwe.mitre.org/data/definitions/219.html)  |  [CWE-548](https://cwe.mitre.org/data/definitions/548.html)  |  [CWE-798](https://cwe.mitre.org/data/definitions/798.html)  |  [A01:2025](https://owasp.org/Top10/2025/A01_2025-Broken_Access_Control/)  |  [A02:2025](https://owasp.org/Top10/2025/A02_2025-Security_Misconfiguration/)
 
-## 13. Evidence Interpretation and False-Positive Controls
+## 5. Evidence Interpretation and False-Positive Controls
 
 | Control | What It Proved | What It Did Not Prove |
 | --- | --- | --- |
@@ -485,7 +464,7 @@ deployment pipeline -> reject sensitive artefacts -> secrets manager -> named us
 | `Cookie`-less replay | The `OWNER_KEY` was sufficient without session credentials. | It did not establish any broader owner-console functionality beyond the returned result. |
 | `curl` differential | A separate client reproduced the same semantic oracle. | It did not expand testing beyond the intended challenge objective. |
 
-## 14. Impact
+## 6. Impact
 
 In the reproduced lab, any unauthenticated user could enumerate a public migration directory, download a legacy configuration snapshot, obtain a live static owner credential, and receive server-side owner verification and the challenge flag. The same file also disclosed database connection values and WordPress authentication keys, although those additional values were not tested for current validity.
 
@@ -493,16 +472,16 @@ In a production environment, an equivalent chain could expose privileged workflo
 
 > **Impact qualification:** Confirmed impact is limited to public secret disclosure, current validity of the `OWNER_KEY`, owner verification, and flag disclosure. Database access, WordPress user impersonation, destructive actions, and broader administrative capabilities were not attempted and are not claimed.
 
-## 15. Remediation
+## 7. Remediation
 
-### 15.1 Immediate Containment
+### 7.1 Immediate Containment
 
 - Remove `/archive/` and all migration snapshots from the public document root.
 - Rotate `OWNER_KEY`, database credentials, and every WordPress authentication key exposed in the backup.
 - Rotate the exposed WordPress authentication keys to invalidate existing authentication cookies, then review access logs for requests to the listed files and privileged endpoint.
 - Search the complete deployment for additional .bak, .old, .orig, .save, .zip, .sql, export, and temporary artefacts.
 
-### 15.2 Web-Server Controls
+### 7.2 Web-Server Controls
 
 ```apache
 Options -Indexes
@@ -518,34 +497,20 @@ Options -Indexes
 
 Extension blocks are defense in depth, not a substitute for removing sensitive files. Backups and migration data should never be deployed under a public web root.
 
-### 15.3 Secret and Authentication Design
+### 7.3 Secret and Authentication Design
 
 - Move secrets to an approved secrets manager or environment-specific protected configuration store.
 - Replace the shared static `OWNER_KEY` with named user accounts, strong authentication, MFA, role-based authorization, and auditable server-side sessions.
 - Use short-lived administrative credentials and enforce rotation after migrations, incident response, or personnel changes.
 
-### 15.4 Deployment and SDLC Controls
+### 7.4 Deployment and SDLC Controls
 
 - Add CI/CD deny-list checks for backup, export, archive, and secret-bearing files before release.
 - Run post-deployment web-root inventory and unauthenticated content-discovery checks.
 - Assign migration-cleanup ownership, a removal deadline, and go-live verification criteria.
 - Maintain automated tests confirming that sensitive directories return `403/404` and privileged routes reject anonymous and non-owner identities.
 
-## 16. Reproduction Reference
-
-> **Reproduction contract:** Use a fresh authorized instance and preserve the evidence order. The finding is confirmed only when the publicly disclosed key is accepted by the live owner consumer; a redirect, directory listing, secret-bearing file, or `HTTP 200` response alone is insufficient.
-
-1. **Establish the current-instance baseline.** Capture `GET /` and verify the active host and Dust Jacket application identity.
-2. **Confirm the archive path.** Request `GET /archive` and record the canonical redirect to `/archive/`.
-3. **Prove public indexing.** Request `GET /archive/` and retain the full directory inventory.
-4. **Establish unintended exposure.** Retrieve `README.txt` and confirm the migration-debris and cleanup context.
-5. **Inspect the critical backup.** Retrieve `config.php.bak`, redact all reusable values, and identify the `OWNER_KEY`-to-`/owner` mapping.
-6. **Map the live consumer.** Request `GET /owner` and record `POST /owner.php`, `application/x-www-form-urlencoded`, and `owner_key`.
-7. **Create the negative oracle.** Submit a format-correct invalid key and require the explicit validation error.
-8. **Run the proof request.** Change only `owner_key` to the disclosed value, remove `Cookie` and `Authorization`, and require `owner: verified` plus the current flag.
-9. **Triangulate safely.** Reproduce the invalid-versus-valid differential with `curl`, redact public output, and retain raw secret-bearing artefacts privately.
-
-## 17. Lessons Learned
+## 8. Lessons Learned
 
 The evidence chain supports six reusable lessons for future authorized web-security testing:
 
@@ -556,7 +521,7 @@ The evidence chain supports six reusable lessons for future authorized web-secur
 - **Status is not semantics.** Both invalid and valid requests returned `HTTP 200`; the body and `Content-Type` created the authoritative oracle.
 - **Triangulate without overtesting.** Caido proved the HTTP chain and controlled differential; `curl` independently confirmed the result without expanding scope.
 
-## 18. Final Result and Conclusion
+## Conclusion
 
 **Discovery.** The Dust Jacket server exposed a real `/archive` directory and an Apache-generated index. The listed README confirmed unintended migration debris, while `config.php.bak` disclosed sensitive configuration material and a static `OWNER_KEY` associated with the owner console.
 
