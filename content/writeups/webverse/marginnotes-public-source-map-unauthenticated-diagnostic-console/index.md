@@ -27,7 +27,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-013"
-case_featured: false
+case_featured: true
 case_summary_short: "A public source map disclosed a hidden diagnostic route that returned sensitive operational data anonymously."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Missing Authentication / Public Source Map Disclosure"

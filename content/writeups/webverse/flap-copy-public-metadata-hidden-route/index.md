@@ -26,7 +26,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-012"
-case_featured: true
+case_featured: false
 case_summary_short: "Public PWA/AASA metadata disclosed a live internal staff route and handoff metadata."
 case_status: "VERIFIED / PREVIOUSLY SOLVED"
 case_classification: "Public Metadata Disclosure / Internal Route Exposure"
