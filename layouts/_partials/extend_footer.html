@@ -1,0 +1,2 @@
+{{- $lightbox := resources.Get "js/evidence-lightbox.js" | minify | fingerprint -}}
+<script defer src="{{ $lightbox.RelPermalink }}" integrity="{{ $lightbox.Data.Integrity }}"></script>
