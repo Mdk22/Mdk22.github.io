@@ -8,4 +8,4 @@ source_authority: "MITRE Common Weakness Enumeration"
 mitre_url: "https://cwe.mitre.org/data/definitions/916.html"
 ---
 
-Within this archive, CWE-916 is used where password verification relies on a fast general-purpose digest or another scheme that does not impose an adequate cost on offline guesses. Digest shape alone does not establish the algorithm; a controlled candidate match or equivalent evidence is required.
+Within this archive, CWE-916 is used when password verification relies on a fast general-purpose digest or another scheme that makes offline guessing too cheap. Digest length alone does not identify the algorithm; a matching offline candidate or equivalent evidence is required.

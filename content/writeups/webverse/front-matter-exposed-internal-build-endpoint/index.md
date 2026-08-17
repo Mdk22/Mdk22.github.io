@@ -1,11 +1,11 @@
 ---
-title: "WebVerse Front Matter — From Production HTML Comments to an Exposed Internal Build Endpoint"
+title: "WebVerse Front Matter: From Production HTML Comments to an Exposed Internal Build Endpoint"
 date: 2026-07-30T00:00:00+02:00
 lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
-description: "A Caido- and curl-backed reproduction of production HTML comments exposing a publicly reachable internal build endpoint through GET /api/internal/build."
-summary: "A public Colophon page contained a production build-pipeline comment disclosing /api/internal/build and stating that it should remain off-network. Anonymous Caido and curl requests returned HTTP 200, build metadata, status ok, and the current-instance flag."
+description: "A production HTML comment disclosed `/api/internal/build`, which returned build data and the lab flag without authentication."
+summary: "A production comment on the public Colophon page disclosed `/api/internal/build` and said it should remain off-network. Anonymous Caido and curl requests returned HTTP 200, build metadata, status `ok`, and the lab flag."
 categories:
   - "Web Security Write-Ups"
 tags:
@@ -57,13 +57,13 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is represented as `WEBVERSE{REDACTED}`. Dynamic lab-host values use `<LAB_HOST>`, and session material and private raw evidence are excluded from the public manuscript and image bundle.
+> **Publication note:** This article covers an authorized lab reproduction. The flag is shown as `WEBVERSE{REDACTED}`, temporary hosts use `<LAB_HOST>`, and sessions and private raw evidence are not published.
 
 ## Executive Summary
 
-The **Front Matter** challenge was solved through a narrowly scoped reconnaissance process that followed the application's own public navigation. The storefront linked to a Colophon page whose production HTML contained a build-pipeline comment. That comment disclosed the internal route `/api/internal/build`, stated that the endpoint should remain off-network, and identified the response body as the location of the challenge flag.
+The **Front Matter** challenge was solved through focused reconnaissance that followed the application's own public navigation. The storefront linked to a Colophon page whose production HTML contained a build-pipeline comment. That comment disclosed the internal route `/api/internal/build`, stated that the endpoint should remain off-network, and identified the response body as the location of the challenge flag.
 
-A controlled Caido Replay request removed session credentials and requested the disclosed route directly. The server returned HTTP `200` with `text/plain` content containing a build identifier, a status value of `ok`, and the current-instance WebVerse flag. An independent `curl` request reproduced the same result without cookies or authorization, and WebVerse subsequently accepted the flag and marked the challenge as solved.
+I removed all session credentials and requested the disclosed route in Caido Replay. The server returned HTTP `200` and a `text/plain` body with a build ID, status `ok`, and the lab flag. The same request worked with `curl` without cookies or authorization, and WebVerse accepted the flag.
 
 > **Confirmed finding:** The vulnerability was not the HTML comment alone. The complete issue was the combination of a production comment that disclosed an internal route and an access-control/deployment-boundary failure that left the internal endpoint publicly reachable by an anonymous client.
 
@@ -90,7 +90,7 @@ GET /colophon
   -> production HTML comment discloses /api/internal/build
 GET /api/internal/build
   -> anonymous HTTP 200
-  -> build metadata and current-instance flag
+  -> build metadata and lab flag
 curl verification
   -> matching response reproduced in a second client
 WebVerse submission
@@ -101,24 +101,24 @@ WebVerse submission
 
 - No user account or privileged role was required.
 - No non-`GET` request or explicit mutation payload was sent; every test used `GET`.
-- The evidence does not establish whether `GET` only returned metadata or also initiated server-side build activity or another state change.
+- The evidence does not show whether `GET` only returned metadata or also started a build or another server-side action.
 - No crawler, directory brute-force, method fuzzing, or unrelated route enumeration was used.
 - All dynamic values, responses, and the flag were collected from the fresh current instance.
-- The reproduction stopped immediately after the authoritative flag and solved-state were confirmed.
+- The reproduction stopped immediately after WebVerse accepted the flag.
 
 ### Evidence Basis
 
-The final conclusion is grounded in three independent evidence layers: Caido HTTP History for the legitimate application flow, Caido Replay for anonymous endpoint validation, and `curl` for a portable raw response. The platform solved-state provides a final external confirmation that the disclosed flag was valid for the current instance.
+The conclusion uses three evidence sources: Caido History for the normal application flow, Caido Replay for the anonymous request, and `curl` for a portable raw response. WebVerse then accepted the disclosed flag.
 
-## 3. Evidence-Led Chronological Reproduction
+## 3. Step-by-Step Reproduction
 
-No standalone payload value was used. The security-relevant mutation was the request path, while the decisive access-control control was the removal of session material before requesting the application-disclosed endpoint. Each request below is kept beside its response evidence and narrow conclusion so the public navigation, source disclosure, anonymous validation, independent reproduction, and platform oracle remain one continuous chain.
+There was no standalone payload. The important change was the request path, and the access-control check was simple: remove the session before requesting the endpoint named by the application. Each request stays beside its response and conclusion so the path from public page to anonymous response remains easy to follow.
 
-### 3.1 Current-Instance Storefront Baseline
+### 3.1 Storefront Baseline
 
-The investigation began with the public storefront rather than a route copied from historical material. This established the active hostname and normal request contract without exploit mutation.
+I began with the public storefront instead of copying a route from older notes. The first request recorded the active host and normal application response.
 
-**R-01 — Storefront baseline.**
+**R-01: Storefront baseline.**
 
 ```http
 GET / HTTP/1.1
@@ -126,11 +126,11 @@ Host: <LAB_HOST>
 Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
 ```
 
-**Expected semantic result:** HTTP 200 with Front Matter HTML. This step binds the reproduction to the fresh instance; it does not prove sensitive disclosure.
+**Expected result:** HTTP 200 with Front Matter HTML. This step binds the reproduction to the fresh instance; it does not prove sensitive disclosure.
 
-![Current-instance storefront request captured in Caido.](01-caido-storefront-baseline-request.png)
+![Storefront request captured in Caido.](01-caido-storefront-baseline-request.png)
 
-*Figure 1 — Current-instance storefront request. Caido records a normal `GET /` request on the fresh Front Matter host.*
+*Figure 1: Caido records a normal `GET /` request on the fresh Front Matter host.*
 
 ### 3.2 Application-Provided Colophon Discovery
 
@@ -147,32 +147,32 @@ Content-Type: text/html; charset=utf-8
 
 ![Storefront HTML response exposing the public Colophon link.](02-caido-storefront-response-colophon-link.png)
 
-*Figure 2 — Storefront response. The application confirms its identity and provides the exact `/colophon` discovery path.*
+*Figure 2: The storefront confirms its identity and links `/colophon`.*
 
 No relevant HTML comment or flag was identified in the root response. Colophon was prioritized because the challenge briefing emphasized production notes, markup, and producer-left content.
 
 ### 3.3 Same-Origin Colophon Request and Response
 
-**R-02 — Colophon source request.**
+**R-02: Colophon source request.**
 
 ```http
 GET /colophon HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-**Expected semantic result:** HTTP 200 with the active instance's Colophon HTML.
+**Expected result:** HTTP 200 with the active instance's Colophon HTML.
 
 ![Same-origin Colophon navigation request with the browser cookie raster-redacted.](03-caido-colophon-request-redacted.png)
 
-*Figure 3 — Colophon request. The same-origin `GET /colophon` follows the storefront link. The browser cookie is redacted because it is unnecessary for the public-page claim.*
+*Figure 3: Colophon request. The same-origin `GET /colophon` follows the storefront link. The browser cookie is redacted because it is unnecessary for the public-page claim.*
 
 The response returned a normal HTML document titled `Colophon - Front Matter` with production notes about typography, paper, binding, and the catalogue build process.
 
 ![Colophon response headers and document identity.](04-caido-colophon-response.png)
 
-*Figure 4 — Colophon response. HTTP 200, HTML content type, and document title bind the later source comment to the active Front Matter page.*
+*Figure 4: Colophon response. HTTP 200, HTML content type, and document title bind the later source comment to the active Front Matter page.*
 
-### 3.4 Production Comment and Exact Hypothesis
+### 3.4 Production Comment and Testable Route
 
 Raw-source inspection revealed a production build-pipeline comment. The rendered page did not display it, but any unauthenticated client could retrieve it through View Source, an intercepting proxy, or an ordinary HTTP client.
 
@@ -185,26 +185,26 @@ flag will land in the body of the response. -->
 
 ![Production build-pipeline comment embedded in the Colophon HTML source.](05-caido-build-pipeline-comment.png)
 
-*Figure 5 — Production source disclosure. The comment names `/api/internal/build`, associates it with a rebuild script, states the intended off-network boundary, and defines the response body as the objective oracle.*
+*Figure 5: Production source disclosure. The comment names `/api/internal/build`, associates it with a rebuild script, states the intended off-network boundary, and defines the response body as the objective oracle.*
 
 | Disclosed fact | Security meaning |
 | --- | --- |
-| `/api/internal/build` | Exact route to validate; no further route discovery was required. |
+| `/api/internal/build` | Route to test; no further discovery was required. |
 | `rebuild script` | The route was associated with an internal build or catalogue pipeline. |
 | `keep it off-network` | The intended deployment boundary was explicit and testable. |
-| `flag ... in the body` | The response body was identified as the authoritative objective oracle. |
+| `flag ... in the body` | The comment says that the response body contains the flag. |
 
-The comment was treated as a discovery signal, not a confirmed vulnerability. Continuing broad reconnaissance would have added noise; the next action was one bounded anonymous `GET` to the exact disclosed endpoint.
+The comment was a lead, not a confirmed vulnerability. The next step was one anonymous `GET` to the disclosed endpoint.
 
 > **METHODOLOGY BOUNDARY**
 >
-> Convert a source comment into one precise hypothesis, remove session material before testing anonymous access, do not infer server-side effects from `GET` alone, and close the chain with an independent client and platform oracle.
+> Turn the source comment into one testable route, remove the session before checking anonymous access, do not infer server-side effects from `GET` alone, and repeat the response with a second client.
 
 ### 3.5 Anonymous Caido Replay Validation
 
 The captured Colophon request was sent to Replay and only the path was changed. `Cookie` was removed, and no `Authorization` header, token, query parameter, or request body was supplied.
 
-**R-03 — Anonymous internal-endpoint request.**
+**R-03: Anonymous internal-endpoint request.**
 
 ```http
 GET /api/internal/build HTTP/1.1
@@ -216,30 +216,30 @@ Accept: */*
 # No request body
 ```
 
-**Expected semantic result:** HTTP 200 with `text/plain` content containing a build identifier, status `ok`, and a current-instance flag represented publicly as `WEBVERSE{REDACTED}`.
+**Expected result:** HTTP 200 with `text/plain`, a build ID, status `ok`, and a flag shown publicly as `WEBVERSE{REDACTED}`.
 
 ![Anonymous Caido Replay request to the disclosed internal build endpoint.](06-caido-anonymous-internal-build-request.png)
 
-*Figure 6 — Anonymous request. The exact disclosed route is requested without application credentials or a payload-based mutation.*
+*Figure 6: The disclosed route is requested without credentials or a payload.*
 
 ![Caido response from the internal build endpoint with the complete flag raster-redacted.](07-caido-internal-build-response-redacted.png)
 
-*Figure 7 — Runtime proof. Caido shows HTTP 200, `text/plain`, a build ID, status `ok`, and the public-safe objective representation.*
+*Figure 7: Caido shows HTTP 200, `text/plain`, a build ID, status `ok`, and the redacted flag.*
 
-This proves anonymous external read access and sensitive response disclosure. It does not establish whether `GET` also initiated build activity or another state change.
+This confirms anonymous external read access and sensitive data disclosure. It does not show whether `GET` also started a build or changed server state.
 
-### 3.6 Independent `curl` Verification
+### 3.6 Repeating the Request with `curl`
 
 A second client requested the same endpoint without session material, ruling out a Caido display or Replay-state artifact. The private local output-capture filename is intentionally omitted.
 
-**C-01 — Executed independent request.**
+**C-01: Executed `curl` request.**
 
 ```bash
 curl --silent --show-error --include \
   'https://<LAB_HOST>/api/internal/build'
 ```
 
-**Expected semantic result:** a matching anonymous response during the same session.
+**Expected result:** a matching anonymous response during the same session.
 
 ```text
 HTTP/2 200
@@ -251,31 +251,31 @@ status: ok
 flag: WEBVERSE{REDACTED}
 ```
 
-![Raw curl reproduction with the temporary host and current-instance flag redacted.](08-curl-internal-build-prefix-only.png)
+![Raw curl reproduction with the temporary host and lab flag redacted.](08-curl-internal-build-prefix-only.png)
 
-*Figure 8 — Independent reproduction. `curl` confirms the same endpoint, response semantics, build metadata, and redacted objective without cookies or authorization.*
+*Figure 8: `curl` returns the same status, content type, build metadata, and redacted flag without cookies or authorization.*
 
-> **PROTOCOL NOTE:** Caido Replay displayed HTTP/1.1 while `curl` negotiated HTTP/2. This is not conflicting evidence: both clients reached the same endpoint and received matching status, content type, build metadata, and objective semantics.
+> **Protocol note:** Caido Replay used HTTP/1.1 while `curl` negotiated HTTP/2. Both clients still reached the same endpoint and received matching status, content type, build metadata, and flag.
 
-### 3.7 Platform Oracle, Evidence Closure, and Stop Boundary
+### 3.7 WebVerse Result and Stop Point
 
-The full current-instance value recovered from the raw response was submitted to WebVerse. The platform reported **Challenge Solved** and **Flag accepted**.
+I submitted the full value from the raw response to WebVerse. The platform reported **Challenge Solved** and **Flag accepted**.
 
 ```text
-CURRENT-INSTANCE FLAG
+LAB FLAG
 WEBVERSE{REDACTED}
 ```
 
 ![WebVerse challenge solved state for Front Matter.](09-webverse-front-matter-solved-state.png)
 
-*Figure 9 — Authoritative solved state. WebVerse independently confirms that the anonymously disclosed value belonged to the active Front Matter instance.*
+*Figure 9: WebVerse accepts the value returned by the anonymous Front Matter request.*
 
 | Tool | What it proved |
 | --- | --- |
 | Caido History | The legitimate storefront-to-Colophon flow and exact production HTML disclosure. |
 | Caido Replay | The internal endpoint remained reachable after session credentials were removed. |
 | `curl` | A second client reproduced the matching anonymous response during the same session. |
-| WebVerse UI | The recovered current-instance objective was accepted and the challenge marked solved. |
+| WebVerse UI | The recovered flag was accepted and the challenge marked solved. |
 
 | Final evidence field | Verified result |
 | --- | --- |
@@ -287,11 +287,11 @@ WEBVERSE{REDACTED}
 | Build ID | `2026.05.03-a91c4` |
 | Build status | `ok` |
 | Flag | `WEBVERSE{REDACTED}` |
-| Platform result | Challenge Solved - Flag accepted |
+| Platform result | Challenge Solved, Flag accepted |
 
-> **STOP BOUNDARY**
+> **WHERE TESTING STOPPED**
 >
-> Reproduction stopped immediately after cross-client confirmation and authoritative platform acceptance. No non-`GET` request, mutation, method fuzzing, crawler, brute-force discovery, or unrelated route testing was introduced.
+> Reproduction stopped after the `curl` check and WebVerse acceptance. I did not send non-`GET` methods, fuzz methods, crawl the site, brute-force routes, or test unrelated endpoints.
 
 ## 4. Vulnerability Classification
 
@@ -328,7 +328,7 @@ A development note containing an internal route, its operational purpose, its in
 
 ### Deployment Boundary Failure
 
-The comment explicitly stated that the build route should be kept off-network. Runtime evidence demonstrated the opposite: an external anonymous client received HTTP `200` from the route.
+The comment said the build route should stay off-network. In practice, an anonymous external request received HTTP `200`.
 
 ### Sensitive Data in an Unauthenticated Response
 
@@ -341,14 +341,14 @@ The endpoint returned a build identifier, operational status, and the challenge 
 | A route in a comment proves exposure | The route was requested and returned HTTP `200`; the comment alone was not treated as final proof. |
 | HTTP `200` proves sensitive disclosure | The response body was inspected and shown to contain build metadata and the challenge secret. |
 | A browser session enabled access | `Cookie` and `Authorization` headers were absent from the Replay request, and `curl` reproduced the result anonymously. |
-| The result was a proxy or UI artifact | A second client returned the same status, content type, body semantics, and full flag. |
+| The result was a proxy or UI artifact | A second client returned the same status, content type, body, and full flag. |
 | The flag was stale or from another instance | It was obtained from the active hostname and accepted by WebVerse during the same session. |
 
 ## 7. Impact
 
 Within the lab, the issue resulted in complete compromise of the challenge objective: any unauthenticated user who inspected the relevant source could retrieve the flag directly from the internal endpoint.
 
-In an equivalent production environment, the impact would depend on the actual data and capabilities exposed by the internal endpoint. Plausible consequences could include disclosure of build identifiers, deployment metadata, environment details, operational status, tokens, or other secrets. The evidence in this lab does not establish those additional data types; they are production-risk examples rather than claims about this target.
+In production, impact would depend on the endpoint's real data and capabilities. It might expose build IDs, deployment metadata, environment details, status information, tokens, or other secrets. This lab confirmed only the values shown in the evidence.
 
 > **Severity note:** No CVSS score is assigned because this educational instance does not provide the asset value, trust boundaries, confidentiality requirements, or production business context required for a defensible score.
 
@@ -372,9 +372,9 @@ In an equivalent production environment, the impact would depend on the actual d
 
 ## Conclusion
 
-Front Matter demonstrates why source inspection remains a high-value reconnaissance technique. The decisive step was not broad automation but disciplined prioritization: follow the challenge briefing, inspect the most relevant public page, convert the disclosed route into a precise hypothesis, and validate it with the smallest possible request.
+Front Matter shows why reading public source is still valuable. There was no need for broad automation: follow the clue, inspect the relevant page, take the disclosed route, and test it with one anonymous request.
 
-The final evidence chain is complete and independently reproducible. A production HTML comment disclosed an internal build route and stated that it should remain off-network. The route was nevertheless accessible to an anonymous external client and returned sensitive build data together with the current-instance flag. Caido established the application flow and anonymous access, `curl` reproduced the matching raw response during the same session, and WebVerse accepted the recovered flag.
+A production HTML comment disclosed an internal build route and said it should remain off-network. The route was still reachable without authentication and returned build data plus the lab flag. Caido captured the application flow, `curl` returned the same response, and WebVerse accepted the flag.
 
 ```text
 FINAL VERDICT
@@ -388,5 +388,5 @@ CONFIRMED - A production HTML comment disclosed an internal route that was exter
 | Caido storefront request/response | Current-host baseline and public `/colophon` route. |
 | Caido Colophon request/response | Production HTML comment and exact internal route disclosure. |
 | Caido Replay request/response | Anonymous access to `/api/internal/build` and sensitive response. |
-| Private raw HTTP response | Current-instance flag verification; the public manuscript represents it as `WEBVERSE{REDACTED}`. |
+| Private raw HTTP response | Full flag verification; the public article shows it as `WEBVERSE{REDACTED}`. |
 | `Front_Matter.png` | WebVerse solved-state confirmation. |

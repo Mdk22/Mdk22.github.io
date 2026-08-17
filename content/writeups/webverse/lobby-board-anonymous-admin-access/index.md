@@ -1,10 +1,10 @@
 ---
-title: "WebVerse Lobby Board — From a Next.js Build Manifest to Anonymous Admin Access"
+title: "WebVerse Lobby Board: From a Next.js Build Manifest to Anonymous Admin Access"
 date: 2026-07-28T00:00:00+02:00
 lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
-description: "A build-manifest-driven investigation confirming missing server-side authentication on GET /_admin/board."
+description: "A public Next.js build manifest exposed `/_admin/board`, which returned the real admin page without authentication."
 summary: "A public Next.js build manifest exposed a hidden admin route and its client chunk. The chunk identified /_admin/board with guard: null, and a request without Cookie or Authorization headers returned the genuine administrative submissions board."
 categories:
   - "Web Security Write-Ups"
@@ -56,13 +56,13 @@ methods:
   - "Independent curl Verification"
 ---
 
-> **Publication note:** This article documents an authorized educational lab reproduction. The current-instance flag is redacted everywhere as `WEBVERSE{REDACTED}`. Session cookies, clearance values, and raw secret-bearing evidence are excluded from the public manuscript and image bundle.
+> **Publication note:** This article covers an authorized lab reproduction. The flag is shown as `WEBVERSE{REDACTED}`. Session cookies, clearance values, and raw secret-bearing evidence are not published.
 
 ## Executive Summary
 
 The WebVerse **Lobby Board** challenge exposed a public Next.js build manifest that mapped application routes to client-side chunks. The visible interface did not advertise an administrative area, yet the manifest disclosed a hidden `/_admin` route and its dedicated JavaScript chunk. The parent route itself returned an application-level `404`, but the disclosed chunk enumerated four administrative child routes and identified `/_admin/board` with `guard: null`.
 
-A controlled request to `/_admin/board` was then sent without `Cookie` or `Authorization` headers. The server returned HTTP `200` and rendered the genuine submissions board, including moderation queue statistics, build and runtime metadata, and the current-instance lab flag. Chromium and an independent `curl` request reproduced the result.
+I requested `/_admin/board` without `Cookie` or `Authorization`. The server returned HTTP `200` and the real submissions board with moderation statistics, build and runtime details, and the lab flag. Chromium rendered the page, and `curl` returned the same content.
 
 > **Confirmed finding:** An anonymous request to `GET /_admin/board` receives the real administrative submissions board. The root cause is missing server-side authentication. Public route and guard metadata are discovery enablers; unauthorized information exposure is the confirmed consequence.
 
@@ -74,15 +74,15 @@ A controlled request to `/_admin/board` was then sent without `Cookie` or `Autho
 | Affected endpoint | `GET /_admin/board` |
 | Authentication state | Anonymous; `Cookie` and `Authorization` headers absent |
 | Primary proof | Caido Replay request/response differential |
-| Independent proof | Chromium rendering and `curl` reproduction |
-| Primary classification | CWE-306 — Missing Authentication for Critical Function |
-| Secondary consequence | CWE-200 — Exposure of Sensitive Information to an Unauthorized Actor |
-| OWASP category | A07:2025 — Authentication Failures |
+| Additional checks | Chromium rendering and `curl` reproduction |
+| Primary classification | CWE-306: Missing Authentication for Critical Function |
+| Secondary consequence | CWE-200: Exposure of Sensitive Information to an Unauthorized Actor |
+| OWASP category | A07:2025, Authentication Failures |
 | Result | Solved / verified; flag redacted as `WEBVERSE{REDACTED}` |
 
 ## 1. Scope and Prerequisites
 
-Testing was limited to the active WebVerse Lobby Board challenge instance. The environment was deliberately vulnerable and authorized for educational testing. All runtime claims in this write-up were recollected from the current instance; historical notes were used only to guide the expected route grammar and evidence plan.
+Testing stayed inside the active WebVerse Lobby Board lab. All runtime results were collected again from the fresh instance. Older notes were used only to plan which evidence to capture.
 
 ### Scope Boundaries
 
@@ -95,9 +95,9 @@ Testing was limited to the active WebVerse Lobby Board challenge instance. The e
 
 - An active, authorized WebVerse Lobby Board instance
 - Chromium configured through Caido for request capture and Replay validation
-- A terminal with `curl` for independent HTTP reproduction
+- A terminal with `curl` to repeat the HTTP request
 - A fresh evidence set from the current instance; expired hostnames and previous flags must not be reused
-- A public-safe redaction workflow for flags, cookies, tokens, and raw evidence files
+- A redaction workflow for flags, cookies, tokens, and raw evidence files
 
 ## 2. Application and Request-Flow Baseline
 
@@ -113,11 +113,11 @@ Public landing page
   -> administrative submissions board and WEBVERSE{REDACTED}
 ```
 
-The decisive security question was not whether a route name appeared in a public asset. It was whether the server enforced authentication when the privileged route was requested directly.
+Finding a route name in a public asset was only a lead. The real question was whether the server required authentication when that route was requested directly.
 
 ## 3. Landing-Page Baseline
 
-A normal navigation to the root path was captured in Caido before any route mutation. This baseline established the current host, HTTP method, root path, and normal HTML response contract.
+I first captured a normal visit to the root page in Caido. This recorded the lab host, method, path, and normal HTML response.
 
 ```http
 GET / HTTP/1.1
@@ -126,7 +126,7 @@ Host: <LAB_HOST>
 
 ![Caido baseline request confirming the active Lobby Board host and the initial GET request.](01-caido-landing-baseline-request.png)
 
-*Figure 1 — Caido baseline request confirming the active Lobby Board host and the initial `GET /` request.*
+*Figure 1: Caido baseline request confirming the active Lobby Board host and the initial `GET /` request.*
 
 The server returned HTTP `200` with `text/html` content, identified the application as Lobby Board, and disclosed Express through the `X-Powered-By` header. The end of the HTML document loaded `main.js` and `_buildManifest.js`.
 
@@ -137,9 +137,9 @@ The server returned HTTP `200` with `text/html` content, identified the applicat
 
 ![Landing-page HTML exposing the Next.js build-manifest path and the Lobby Board version footer.](02-caido-landing-html-build-manifest.png)
 
-*Figure 2 — Landing-page HTML exposing the Next.js build-manifest path and the `lobby-board v0.18.4` footer.*
+*Figure 2: Landing-page HTML exposing the Next.js build-manifest path and the `lobby-board v0.18.4` footer.*
 
-> **Baseline conclusion:** The build-manifest path was confirmed directly from the current-instance HTML. It was not guessed through broad enumeration or copied from an expired instance.
+> **Baseline result:** The HTML linked the build manifest directly. The path was not guessed or copied from an expired instance.
 
 ## 4. Build Manifest Route Disclosure
 
@@ -152,7 +152,7 @@ Host: <LAB_HOST>
 
 ![Caido request for the public Next.js build manifest with the cookie value permanently raster-redacted.](03-caido-build-manifest-request-redacted.png)
 
-*Figure 3 — Caido request for the public Next.js build manifest. The cookie value is permanently raster-redacted.*
+*Figure 3: Caido request for the public Next.js build manifest. The cookie value is permanently raster-redacted.*
 
 The server returned HTTP `200` and `application/javascript` content. The manifest listed ordinary public routes and also mapped a hidden `/_admin` entry to a dedicated admin page chunk. The same route appeared in `sortedPages`.
 
@@ -167,22 +167,22 @@ sortedPages: ["/", "/_admin", "/blog", "/blog/[slug]", ...]
 
 ![Build-manifest response exposing the hidden admin route, dedicated chunk, and sortedPages inventory.](04-caido-build-manifest-response.png)
 
-*Figure 4 — Build-manifest response exposing `/_admin`, the admin chunk, and the `sortedPages` inventory.*
+*Figure 4: Build-manifest response exposing `/_admin`, the admin chunk, and the `sortedPages` inventory.*
 
 > **Discovery result:** The manifest proved that the current public build contained an administrative route. It did not, by itself, prove an authentication failure.
 
 ## 5. Parent Route Negative Control
 
-Before following the chunk to child routes, the exact parent route was tested as a negative control. A clean root request was copied into Replay and only the path was changed to `/_admin`.
+Before following the chunk to child routes, I tested the parent route as a negative control. A clean root request was copied into Replay and only the path changed to `/_admin`.
 
 ```http
 GET /_admin HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-![Controlled Replay request to the exact admin parent route with the cookie value raster-redacted.](05-caido-admin-parent-request-redacted.png)
+![Replay request to the admin parent route with the cookie value raster-redacted.](05-caido-admin-parent-request-redacted.png)
 
-*Figure 5 — Controlled Replay request to the exact `/_admin` parent route; the cookie value is raster-redacted.*
+*Figure 5: Replay request to `/_admin`; the cookie value is raster-redacted.*
 
 The application returned HTTP `404` with its own Lobby Board not-found page. The response contained the expected application branding and the heading `Page not found`, confirming an application-level result rather than a network or proxy error.
 
@@ -196,15 +196,15 @@ Content-Type: text/html; charset=utf-8
 <h1>Page not found</h1>
 ```
 
-![Application-level 404 response for the exact admin parent route.](06-caido-admin-parent-404-response.png)
+![Application-level 404 response for the admin parent route.](06-caido-admin-parent-404-response.png)
 
-*Figure 6 — Application-level `404` response for `/_admin`, used as an exact-route negative control.*
+*Figure 6: Application-level `404` response used as the parent-route negative control.*
 
 > **Negative-control interpretation:** `GET /_admin` returning `404` closes only that parent index route. It does not prove that `/_admin/*` children are absent, especially when the current build exposes a dedicated admin chunk.
 
 ## 6. Admin Chunk Analysis
 
-The chunk path disclosed by the manifest was requested directly. This high-information, low-noise step tested the exact artefact selected by the active build rather than enumerating unrelated administrative paths.
+I requested the chunk path listed by the manifest instead of enumerating unrelated administrative paths.
 
 ```http
 GET /_next/static/chunks/pages/_admin/admin-chunk.js HTTP/1.1
@@ -213,7 +213,7 @@ Host: <LAB_HOST>
 
 ![Caido request for the admin page chunk identified by the active build manifest.](07-caido-admin-chunk-request.png)
 
-*Figure 7 — Caido request for the admin page chunk identified by the current build manifest.*
+*Figure 7: Caido request for the admin page chunk identified by the current build manifest.*
 
 The JavaScript response disclosed four administrative child routes, their labels, and their client-side guard values.
 
@@ -230,9 +230,9 @@ The JavaScript response disclosed four administrative child routes, their labels
 
 ![Admin chunk exposing child routes and guard null for the submissions board while sibling routes use session guards.](08-caido-admin-chunk-response.png)
 
-*Figure 8 — Admin chunk exposing child routes and `guard: null` for `/_admin/board` while sibling routes use session guards.*
+*Figure 8: Admin chunk exposing child routes and `guard: null` for `/_admin/board` while sibling routes use session guards.*
 
-> **Decisive source-level signal:** `guard: null` made `/_admin/board` the highest-priority candidate. Client-side metadata is not an authorization control, so the value was treated as prioritization evidence — not proof.
+> **Why this route mattered:** `guard: null` made `/_admin/board` the best candidate to test. Client-side metadata is not an authorization control, so I treated it as a lead, not proof.
 
 ## 7. Anonymous Access Validation
 
@@ -248,7 +248,7 @@ Host: <LAB_HOST>
 
 ![Anonymous Caido Replay request to the submissions board with no Cookie or Authorization header.](09-caido-anonymous-admin-board-request.png)
 
-*Figure 9 — Anonymous Caido Replay request to `/_admin/board` with no `Cookie` or `Authorization` header.*
+*Figure 9: Anonymous Caido Replay request to `/_admin/board` with no `Cookie` or `Authorization` header.*
 
 The server returned HTTP `200` and an HTML document titled `Lobby Board - admin / board`. The response was not a redirect, login page, generic shell, or not-found page; it identified the administrative submissions board directly.
 
@@ -263,7 +263,7 @@ Content-Type: text/html; charset=utf-8
 
 ![HTTP 200 response for the anonymous request including the administrative page title.](10-caido-admin-board-200-response.png)
 
-*Figure 10 — HTTP `200` response for the anonymous request, including the administrative page title.*
+*Figure 10: HTTP `200` response for the anonymous request, including the administrative page title.*
 
 The body contained operational queue data and current runtime information. The same page returned the challenge flag, which is redacted in this public document.
 
@@ -280,9 +280,9 @@ flag: WEBVERSE{REDACTED}
 
 ![Privileged board content returned anonymously including queue statistics runtime metadata and a raster-redacted flag.](11-caido-admin-board-content-redacted.png)
 
-*Figure 11 — Privileged board content returned anonymously, including queue statistics, runtime metadata, and the redacted flag.*
+*Figure 11: Privileged board content returned anonymously, including queue statistics, runtime metadata, and the redacted flag.*
 
-> **Confirmed missing authentication:** An unauthenticated request with no `Cookie` or `Authorization` header received the real administrative board. The request state and privileged response semantics jointly confirm the finding.
+> **Confirmed missing authentication:** A request without `Cookie` or `Authorization` received the real administrative board. The absent credentials and privileged page content confirm the finding together.
 
 ## 8. Reproduction Commands and Payloads
 
@@ -290,7 +290,7 @@ The following blocks contain only request shapes and command-line actions verifi
 
 ### 8.1 Baseline Requests
 
-**R-01 — landing-page baseline**
+**R-01: landing-page baseline**
 
 ```http
 GET / HTTP/1.1
@@ -299,7 +299,7 @@ Host: <LAB_HOST>
 
 Expected result: `HTTP 200` with Lobby Board HTML and a reference to `/_next/static/chunks/_buildManifest.js`. This baseline does not prove an authorization weakness.
 
-**R-02 — build-manifest request**
+**R-02: build-manifest request**
 
 ```http
 GET /_next/static/chunks/_buildManifest.js HTTP/1.1
@@ -310,18 +310,18 @@ Expected result: `HTTP 200` JavaScript mapping `/_admin` to `static/chunks/pages
 
 ### 8.2 Negative Control
 
-**R-03 — exact parent-route control**
+**R-03: parent-route control**
 
 ```http
 GET /_admin HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-Expected result: an application-level `HTTP 404` containing the Lobby Board not-found page. This closes only `GET /_admin`; it does not establish that `/_admin/*` child routes are absent.
+Expected result: an application-level `HTTP 404` with the Lobby Board not-found page. This rules out only `GET /_admin`; child routes can still exist.
 
 ### 8.3 Disclosed-Route Follow-Up
 
-**R-04 — admin-chunk inspection**
+**R-04: admin-chunk inspection**
 
 ```http
 GET /_next/static/chunks/pages/_admin/admin-chunk.js HTTP/1.1
@@ -332,7 +332,7 @@ Expected result: `HTTP 200` JavaScript exposing `/_admin/board` with `guard: nul
 
 ### 8.4 Verified Proof Request
 
-**R-05 — anonymous administrative-board request**
+**R-05: anonymous administrative-board request**
 
 ```http
 GET /_admin/board HTTP/1.1
@@ -342,9 +342,9 @@ Host: <LAB_HOST>
 [No Authorization header]
 ```
 
-Expected result: `HTTP 200` plus the administrative page title, queue statistics, runtime metadata, and `WEBVERSE{REDACTED}`. The anonymous request state together with privileged response semantics is the decisive proof.
+Expected result: `HTTP 200` plus the admin page title, queue statistics, runtime details, and `WEBVERSE{REDACTED}`. The missing credentials and privileged response together confirm the issue.
 
-### 8.5 Independent Command-Line Verification
+### 8.5 Command-Line Reproduction
 
 The verified terminal reproduction requested the same resource without configuring a cookie jar or an `Authorization` header. The public transcription retains the request shape, replaces the dynamic target, and redacts the flag in displayed output.
 
@@ -355,17 +355,17 @@ curl -sS -i \
 | grep -E 'HTTP/|<title>|admin - submissions board|build 0\.18\.4|Pending review|Auto-approved|Rejected|flag:'
 ```
 
-Expected result: `HTTP 200` together with the administrative title, queue values, runtime metadata, and a redacted flag marker. The command independently reproduces the resource; the nearby Caido request remains the primary evidence that no authentication headers were present.
+Expected result: `HTTP 200` with the admin title, queue values, runtime details, and a redacted flag. The command repeats the resource request; the nearby Caido capture remains the proof that authentication headers were absent.
 
 ### 8.6 Expected Result and Evidence Boundary
 
 - Payload inventory: not applicable. No user-controlled injection payload was used in this reproduction.
-- R-01 through R-04 establish the active build, precise route hierarchy, and candidate selection.
+- R-01 through R-04 identify the active build, route hierarchy, and best candidate.
 - R-05 proves that the privileged board is rendered for an anonymous request.
-- The `curl` command independently reproduces the resource, but does not expand the finding to untested sibling routes.
+- The `curl` command reproduces this resource only and does not test sibling routes.
 - Neither route disclosure, `guard: null`, the parent `404`, nor `HTTP 200` alone is sufficient; the complete evidence chain is required.
 
-## 9. Independent Browser and curl Verification
+## 9. Browser and curl Checks
 
 ### Chromium Rendering
 
@@ -373,17 +373,17 @@ The same route was opened directly in Chromium. The address bar showed the activ
 
 ![Chromium rendering of the anonymously accessible admin submissions board with the flag raster-redacted.](12-chromium-admin-board-redacted.png)
 
-*Figure 12 — Chromium rendering of the anonymously accessible admin submissions board with the flag redacted.*
+*Figure 12: Chromium rendering of the anonymously accessible admin submissions board with the flag redacted.*
 
-The browser uptime was higher because process uptime increased between requests. The stable route, build version, Node.js version, queue values, and page identity link both observations to the same resource. Caido remains the authoritative proof of the unauthenticated HTTP request state; Chromium confirms that the response is a functional application page.
+The browser showed a higher uptime because the process kept running between requests. The route, build version, Node.js version, queue values, and page title still match. Caido records that the HTTP request had no credentials, while Chromium shows that the response is a working application page.
 
-### Independent curl Reproduction
+### curl Reproduction
 
-A separate terminal request reproduced the result outside both Caido and the browser interface. The public-safe copyable command is consolidated in Section 8.5; it retains the verified resource path and output handling without publishing a dynamic target or private local-evidence plumbing.
+A terminal request repeated the result outside Caido and the browser. Section 8.5 includes the redacted command with the route and output handling, but omits the temporary host and private local file paths.
 
 ![Terminal verification reproducing HTTP 200 and privileged content after authentication headers were suppressed.](13-curl-admin-board-redacted.png)
 
-*Figure 13 — Terminal verification reproducing HTTP `200` and privileged content after `Cookie` and `Authorization` headers were suppressed; the flag is redacted.*
+*Figure 13: Terminal verification reproducing HTTP `200` and privileged content after `Cookie` and `Authorization` headers were suppressed; the flag is redacted.*
 
 > **Public evidence handling:** The screenshot records the original local evidence workflow, where `tee` captured raw output before display redaction. That private raw file is intentionally excluded from the public document and must not be copied into blog assets.
 
@@ -393,9 +393,9 @@ The WebVerse challenge page displayed Lobby Board as **SOLVED** and identified t
 
 ![WebVerse challenge page showing Lobby Board in the solved state.](14-webverse-solved-state.png)
 
-*Figure 14 — WebVerse challenge page showing Lobby Board in the solved state.*
+*Figure 14: WebVerse challenge page showing Lobby Board in the solved state.*
 
-The page records a solved date of 27 July 2026, while this fresh reproduction was performed on 28 July 2026. The screenshot therefore supports account-level solved status, not timestamped proof of a new submission during the reproduction. The current-instance result was independently recollected through Caido, Chromium, and `curl`.
+The page shows a solved date of 27 July 2026, while this reproduction was performed on 28 July. The screenshot proves only that the account had solved the lab before. The fresh response was collected again through Caido, Chromium, and `curl`.
 
 ## 11. Technical Root Cause and Classification
 
@@ -431,9 +431,9 @@ Classification references: **CWE-306** · **CWE-200** · **OWASP A07:2025**
 | Manifest route disclosure | The active public build contained `/_admin`. | It did not prove authentication was missing. |
 | Client guard metadata | `guard: null` prioritized `/_admin/board`. | It was not runtime or server-side proof. |
 | Parent 404 | `GET /_admin` had no parent index page. | It did not close the `/_admin/*` subtree. |
-| HTTP 200 | The request completed successfully. | Status alone was insufficient without privileged response semantics. |
+| HTTP 200 | The request completed successfully. | Status alone does not show that the page is privileged. |
 | Caido request state | `Cookie` was removed and `Authorization` was absent. | It did not alone prove the body was administrative. |
-| Browser rendering | The document was a functional application page. | The browser view alone was not authoritative for header absence. |
+| Browser rendering | The document was a working application page. | The browser view alone does not prove that request headers were absent. |
 | `curl` verification | A separate client reproduced the endpoint and content with auth headers suppressed. | It did not expand the finding to untested sibling routes. |
 | Sibling routes | They were disclosed as session-guarded. | They were not accessed and are not claimed vulnerable. |
 
@@ -477,12 +477,12 @@ Authorized administrator     -> 200
 
 > **Reproduction contract:** Run the sequence against the current authorized instance and preserve the evidence order. The finding is reproduced only when an anonymous request reaches the genuine administrative board. Route disclosure, guard metadata, a parent `404`, or HTTP `200` alone is insufficient.
 
-1. **Establish the current-instance baseline.** Capture `GET /` and record the active host, normal application identity, and `/_next/static/chunks/_buildManifest.js` reference.
+1. **Capture the baseline.** Send `GET /` and record the active host, application identity, and `/_next/static/chunks/_buildManifest.js` reference.
 2. **Resolve the deployed route map.** Request the build manifest and confirm that the same active build maps `/_admin` to its dedicated admin chunk.
-3. **Preserve the exact negative control.** Request `GET /_admin` and record the application-level `404`. Treat the result as specific to the parent route, not as proof that `/_admin/*` children are absent.
+3. **Keep the parent-route control.** Request `GET /_admin` and record the application-level `404`. Treat it as a result for the parent route only, not proof that child routes are absent.
 4. **Convert source disclosure into a test candidate.** Retrieve the disclosed admin chunk and identify `/_admin/board` with `guard: null`. Use this metadata to prioritize validation, never as proof of access.
 5. **Prove the anonymous request state.** Request `GET /_admin/board` with no `Cookie` or `Authorization` header and retain the request and response together.
-6. **Apply the privileged-content threshold.** Require HTTP `200` plus the administrative title, queue data, runtime metadata, and the redacted current-instance flag before confirming the finding.
+6. **Confirm privileged content.** Require HTTP `200` plus the admin title, queue data, runtime details, and the redacted lab flag.
 7. **Triangulate and publish safely.** Reproduce the resource in Chromium and sanitized `curl`, keep Caido as the primary proof of header absence, and exclude raw secret-bearing output from public assets.
 
 ## 16. Lessons Learned
@@ -491,21 +491,21 @@ The evidence chain produces five transferable lessons for future web application
 
 - **Treat route hierarchy precisely.** A parent `404` closes only `GET /_admin`; it does not close the full `/_admin/*` subtree.
 - **Use client assets for prioritization, not proof.** Manifest and guard metadata narrow the search, while the server response determines whether a security boundary failed.
-- **Require both anonymous state and privileged semantics.** Header absence establishes the requester state; the administrative title, queue data, runtime details, and flag establish the protected meaning of the response.
-- **Triangulate without diluting the primary evidence.** Caido proves the HTTP request state, Chromium confirms functional rendering, and `curl` independently reproduces the resource.
+- **Require both anonymous state and privileged content.** Missing headers show that the request is anonymous. The admin title, queue data, runtime details, and flag show that the response is privileged.
+- **Use each tool for a clear reason.** Caido records the anonymous HTTP request, Chromium shows a working page, and `curl` repeats the resource request.
 - **Make publication hygiene part of the workflow.** Redact flags and credentials, exclude raw captures, and remove unused embedded assets before release.
 
 ## 17. Final Result and Conclusion
 
 **Discovery.** The active landing HTML exposed the Next.js build-manifest path. The manifest mapped `/_admin` to a dedicated page chunk; although `GET /_admin` returned `404`, the chunk disclosed deployed child routes and marked `/_admin/board` with `guard: null`. These signals selected the candidate but did not prove the vulnerability.
 
-**Validation and verdict.** Caido proved that `GET /_admin/board` was requested without `Cookie` or `Authorization` and returned HTTP `200` with the genuine submissions board and current-instance flag. Chromium and `curl` independently reproduced the resource. The complete chain confirms CWE-306: missing server-side authentication on a privileged administrative route.
+**Validation and verdict.** Caido recorded `GET /_admin/board` without `Cookie` or `Authorization` and an HTTP `200` response containing the real submissions board and lab flag. Chromium rendered the page, and `curl` returned the same resource. This confirms CWE-306: the privileged route lacks server-side authentication.
 
 ```text
-CURRENT-INSTANCE RESULT
+LAB RESULT
 Endpoint: GET /_admin/board
-Request state: Anonymous — Cookie and Authorization absent
-Primary weakness: CWE-306 — Missing Authentication for Critical Function
+Request state: Anonymous. Cookie and Authorization absent
+Primary weakness: CWE-306, Missing Authentication for Critical Function
 Flag: WEBVERSE{REDACTED}
 Status: SOLVED / VERIFIED
 ```

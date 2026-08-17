@@ -8,4 +8,4 @@ source_authority: "MITRE Common Weakness Enumeration"
 mitre_url: "https://cwe.mitre.org/data/definitions/615.html"
 ---
 
-Within this archive, CWE-615 is used where production source comments exposed security-relevant routes, operational details, or other information that materially enabled discovery.
+Within this archive, CWE-615 is used when production source comments expose security-relevant routes, operational details, or other information that directly helps discovery.

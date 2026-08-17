@@ -1,10 +1,10 @@
 ---
-title: "WebVerse Echoed — Reflected XSS Through Double-Quoted Attribute Breakout"
+title: "WebVerse Echoed: Reflected XSS Through Double-Quoted Attribute Breakout"
 date: 2026-07-24T00:00:00+02:00
 lastmod: 2026-07-27T00:00:00+02:00
 draft: false
 author: "Mdk22"
-description: "A Caido- and Chromium-backed reproduction of reflected XSS caused by missing output encoding inside a double-quoted HTML attribute."
+description: "A reflected value escaped a double-quoted HTML attribute and executed JavaScript in Chromium."
 summary: "The q parameter was reflected into two HTML contexts. A raw double quote broke out of the search input value attribute, enabling attacker-controlled autofocus and onfocus attributes and browser-side JavaScript execution."
 categories:
   - "Web Security Write-Ups"
@@ -53,9 +53,9 @@ The WebVerse **Echoed** challenge contained a reflected cross-site scripting vul
 
 The textual result sink applied HTML encoding, but the search input repopulation sink inserted the value directly into a double-quoted `value` attribute without encoding the quotation-mark delimiter.
 
-A controlled quote differential demonstrated that an injected double quote terminated the original attribute. A harmless `data-*` canary then confirmed that attacker-controlled attributes could be added to the existing input element. The final payload introduced `autofocus` and `onfocus`, causing Chromium to execute JavaScript in the target origin.
+A single quote comparison showed that an injected double quote ended the original attribute value. A harmless `data-*` marker then added a new attribute to the input element. The final payload used `autofocus` and `onfocus`, and Chromium executed JavaScript in the target origin.
 
-The application subsequently returned `solved: true` and the redacted current-instance flag through `/__status.php`.
+The application then returned `solved: true` and the redacted lab flag through `/__status.php`.
 
 > **Confirmed finding:** Reflected XSS in `GET /find.php` through the `q` parameter, caused by missing context-specific output encoding in a double-quoted HTML attribute.
 
@@ -69,7 +69,7 @@ The application subsequently returned `solved: true` and the redacted current-in
 | Sink | `value="..."` attribute of the search input |
 | Execution primitive | Quote breakout → injected `autofocus` and `onfocus` attributes |
 | Browser proof | Chromium JavaScript alert showing the target domain |
-| Authoritative oracle | `GET /__status.php` returned `solved: true` and the current-instance flag |
+| Solved-state check | `GET /__status.php` returned `solved: true` and the lab flag |
 | CWE mapping | CWE-79 and CWE-116 |
 | Severity | Context-dependent; not formally scored in the educational lab |
 | Final result | Solved |
@@ -82,15 +82,15 @@ The application subsequently returned `solved: true` and the redacted current-in
 | Challenge | Echoed |
 | Challenge type | Daily Challenge |
 | Difficulty | Easy |
-| Authorization | Deliberately vulnerable educational target |
+| Authorization | Vulnerable educational target |
 | Environment | Kali Linux virtual machine |
 | Primary proxy tool | Caido |
-| Authoritative browser | Chromium |
+| Browser | Chromium |
 | Target | `https://95054e68-4414-echoed-8ec13.mystery-challenges.webverselabs-pro.com/` |
 
 The reproduction was limited to the active WebVerse challenge instance. Historical notes were used only to identify the expected route grammar and vulnerability family. The active hostname, server responses, browser behavior, solved state, and flag were recollected from the fresh instance.
 
-No testing was performed against a real organization, production system, or third-party user. The workflow remained within the intended educational scope and stopped once the lab objective was authoritatively confirmed.
+No real organization, production system, or third-party user was tested. Work stopped inside the lab as soon as the application confirmed the solve.
 
 ### Vulnerability Classification
 
@@ -101,7 +101,7 @@ No testing was performed against a real organization, production system, or thir
 
 ## 2. Application and Request Flow
 
-The application exposed a search form that submitted the `q` parameter through a GET request to `/find.php`. A normal browser action was captured in Caido before any security mutation was introduced. This established the exact current-instance host, HTTP method, path, and parameter placement.
+The search form sent `q` in a `GET /find.php` request. I captured a normal search in Caido before changing the input. This recorded the lab host, method, path, and parameter position.
 
 ```http
 GET /find.php?q=black+umbrella HTTP/1.1
@@ -110,17 +110,17 @@ Host: 95054e68-4414-echoed-8ec13.mystery-challenges.webverselabs-pro.com
 
 ![Caido raw baseline request confirming the current host, GET method, /find.php route, and q query parameter.](01-caido-baseline-request.png)
 
-*Figure 1 — Caido raw baseline request confirming the current host, GET method, `/find.php` route, and `q` query parameter.*
+*Figure 1: Caido raw baseline request confirming the current host, GET method, `/find.php` route, and `q` query parameter.*
 
-The baseline response repopulated the search input and displayed the same value in the no-results heading. This established two independent reflection locations that required separate output-context analysis.
+The baseline response placed the same value in the search input and in the no-results heading. Those are two different HTML contexts and had to be checked separately.
 
 ![Baseline HTML response showing black umbrella inside the input value attribute and the textual result heading.](02-caido-baseline-response.png)
 
-*Figure 2 — Baseline HTML response showing `black umbrella` inside the input value attribute and the textual result heading.*
+*Figure 2: Baseline HTML response showing `black umbrella` inside the input value attribute and the textual result heading.*
 
 ![Normal browser baseline showing the search value without executable behavior or a solved-state banner.](03-browser-baseline.png)
 
-*Figure 3 — Normal browser baseline: the search value is displayed without executable behavior or a solved-state banner.*
+*Figure 3: Normal browser baseline: the search value is displayed without executable behavior or a solved-state banner.*
 
 ## 3. Normal Baseline
 
@@ -152,15 +152,15 @@ Host: 95054e68-4414-echoed-8ec13.mystery-challenges.webverselabs-pro.com
 
 ![Caido Replay request containing the inert reflection marker.](04-caido-inert-marker-request.png)
 
-*Figure 4 — Caido Replay request containing the inert reflection marker.*
+*Figure 4: Caido Replay request containing the inert reflection marker.*
 
 The response contained the marker twice: once in the `value` attribute and once in the textual result. The marker was inert, so this phase proved reflection and sink location only; it did not yet prove parser breakout or JavaScript execution.
 
 ![The inert marker reflected in both the double-quoted attribute sink and the HTML text sink.](05-caido-inert-marker-response.png)
 
-*Figure 5 — The inert marker reflected in both the double-quoted attribute sink and the HTML text sink.*
+*Figure 5: The inert marker reflected in both the double-quoted attribute sink and the HTML text sink.*
 
-## 5. Controlled Quote Differential
+## 5. Comparing Quote Handling in Both HTML Contexts
 
 The next Replay request introduced one context-relevant character: a double quote. The `_END` suffix made the output boundary visible and prevented ambiguous interpretation.
 
@@ -178,9 +178,9 @@ GET /find.php?q=ECHO_CAIDO_DQ_7A91%22_END HTTP/1.1
 
 ![Caido Replay request introducing a single encoded double quote in q.](06-caido-quote-request.png)
 
-*Figure 6 — Caido Replay request introducing a single encoded double quote in `q`.*
+*Figure 6: Caido Replay request introducing a single encoded double quote in `q`.*
 
-The response produced a decisive sink-specific differential.
+The two output locations handled the quote differently.
 
 In the search input, the attacker-supplied quote remained raw and terminated the original `value` attribute:
 
@@ -196,9 +196,9 @@ In the textual heading, the same quote was encoded as `&quot;`:
 
 ![Full response differential showing a raw quote in the value attribute and encoded quote in the text sink.](07-caido-quote-response.png)
 
-*Figure 7 — Full response differential: raw quote in the `value` attribute and encoded `&quot;` in the text sink.*
+*Figure 7: Full response differential: raw quote in the `value` attribute and encoded `&quot;` in the text sink.*
 
-> **Decisive observation:** The first sink failed to encode the delimiter of its own HTML context. The second sink was encoded correctly. This isolated the vulnerability to the input `value` attribute rather than to the entire response.
+> **What confirmed the bug:** The input `value` attribute left the double quote raw, while the text heading encoded it correctly. The flaw was therefore limited to the attribute context, not the whole page.
 
 ## 6. Benign Attribute-Canary Validation
 
@@ -218,7 +218,7 @@ GET /find.php?q=ECHO_CAIDO_CANARY_84A2%22+data-echo-canary%3D%22CONFIRMED HTTP/1
 
 ![Caido Replay request containing the benign data-echo-canary attribute payload.](08-caido-canary-request.png)
 
-*Figure 8 — Caido Replay request containing the benign `data-echo-canary` attribute payload.*
+*Figure 8: Caido Replay request containing the benign `data-echo-canary` attribute payload.*
 
 The server returned a syntactically separate `data-echo-canary` attribute between the original `value` and `placeholder` attributes:
 
@@ -231,7 +231,7 @@ The server returned a syntactically separate `data-echo-canary` attribute betwee
 
 ![Caido response showing data-echo-canary as a separate attribute in the input element.](09-caido-canary-response.png)
 
-*Figure 9 — Caido response showing `data-echo-canary="CONFIRMED"` as a separate attribute in the input element.*
+*Figure 9: Caido response showing `data-echo-canary="CONFIRMED"` as a separate attribute in the input element.*
 
 This provided a safe parser-boundary proof: the input controlled more than displayed text and could alter the attribute structure of an existing HTML element. JavaScript execution was still required to confirm XSS.
 
@@ -254,17 +254,17 @@ Chromium rendered the response and displayed a JavaScript alert containing the a
 
 ![Chromium runtime proof showing alert(document.domain) executed on the active Echoed origin.](10-chromium-xss-runtime.png)
 
-*Figure 10 — Chromium runtime proof: `alert(document.domain)` executed on the active Echoed origin.*
+*Figure 10: Chromium runtime proof: `alert(document.domain)` executed on the active Echoed origin.*
 
-> **Browser proof:** Caido established the HTTP and HTML differential. Chromium established the security effect: JavaScript execution in the target origin.
+> **Browser proof:** Caido showed the HTTP and HTML difference. Chromium confirmed the impact by executing JavaScript in the target origin.
 
-## 8. Authoritative Solve-State Readback
+## 8. WebVerse Solved-State Check
 
 After the event handler executed, the page displayed a solved-state banner containing a new flag for the active instance. The current flag differed from the historical solution material, confirming that the result had been freshly reproduced rather than copied from a prior instance.
 
-![Final browser state showing the application solve banner and the redacted current-instance flag.](11-browser-solved-state-redacted.png)
+![Final browser state showing the solve banner and redacted lab flag.](11-browser-solved-state-redacted.png)
 
-*Figure 11 — Final browser state showing the application solve banner and the redacted current-instance flag.*
+*Figure 11: The browser shows the solve banner and redacted lab flag.*
 
 Caido also captured the browser request to the application status endpoint:
 
@@ -275,7 +275,7 @@ Host: 95054e68-4414-echoed-8ec13.mystery-challenges.webverselabs-pro.com
 
 ![Caido request to the status endpoint from the same Chromium context.](12-caido-status-request.png)
 
-*Figure 12 — Caido request to `/__status.php` from the same Chromium context.*
+*Figure 12: Caido request to `/__status.php` from the same Chromium context.*
 
 The server returned an explicit JSON result with `solved` set to `true` and the same redacted flag displayed in the browser:
 
@@ -286,11 +286,11 @@ The server returned an explicit JSON result with `solved` set to `true` and the 
 }
 ```
 
-![Authoritative server response confirming solved true and the redacted current-instance flag.](13-caido-status-response-redacted.png)
+![Server response confirming solved true and the redacted lab flag.](13-caido-status-response-redacted.png)
 
-*Figure 13 — Authoritative server response confirming `solved: true` and the redacted current-instance flag.*
+*Figure 13: The server returns `solved: true` and the redacted lab flag.*
 
-> **Authoritative final oracle:** The browser banner was independently supported by the server-side `/__status.php` JSON response. The result was therefore not a static UI artifact or a local-only DOM effect.
+> **Final check:** The browser banner matched the `/__status.php` JSON response, so the solved state was not only a static UI change or local DOM effect.
 
 ## 9. Technical Root Cause
 
@@ -334,7 +334,7 @@ For PHP-based rendering, the value should be encoded for the HTML attribute cont
 | Raw quote alone | The quote differential proved boundary failure, but the benign canary was used before claiming structural control. |
 | HTML injection alone | The `data-*` canary proved a new attribute could be added, but it was not treated as JavaScript execution. |
 | Browser execution | The Chromium alert directly proved JavaScript execution in the active target origin. |
-| UI artifact control | The `/__status.php` response independently confirmed `solved: true` and returned the same flag. |
+| UI artifact control | The `/__status.php` response returned `solved: true` and the same flag. |
 | Fresh-instance control | The current flag differed from the historical source material, proving that dynamic evidence was rebound to the active instance. |
 
 ## 11. Impact
@@ -408,7 +408,7 @@ Host: 95054e68-4414-echoed-8ec13.mystery-challenges.webverselabs-pro.com
 GET /find.php?q=ECHO_CAIDO_CTX_24A91 HTTP/1.1
 ```
 
-### 13.3 Quote Differential
+### 13.3 Quote Comparison
 
 ```http
 GET /find.php?q=ECHO_CAIDO_DQ_7A91%22_END HTTP/1.1
@@ -434,24 +434,24 @@ URL-encoded `q` value:
 ECHOED_CAIDO_XSS_5A91%22+autofocus+onfocus%3Dalert%28document.domain%29+x%3D%22
 ```
 
-### 13.6 Authoritative Status Check
+### 13.6 WebVerse Status Check
 
 ```http
 GET /__status.php HTTP/1.1
 Host: 95054e68-4414-echoed-8ec13.mystery-challenges.webverselabs-pro.com
 ```
 
-The status endpoint returned `solved: true` and the redacted current-instance flag after the browser-runtime payload executed.
+After the browser payload ran, the status endpoint returned `solved: true` and the redacted lab flag.
 
 ## 14. Final Result and Conclusion
 
-The investigation began with a legitimate search request captured in Caido. Per-occurrence reflection mapping showed that the `q` value entered two different HTML contexts. A single-character differential then identified the decisive flaw: the double quote was encoded in the text sink but remained raw inside the search input `value` attribute.
+I began with a normal search request in Caido. The `q` value appeared in two HTML contexts. Adding one double quote showed the bug: the heading encoded it, but the search input placed it raw inside the `value` attribute.
 
 The benign `data-*` canary proved controlled attribute creation without executing code. A minimal `autofocus`/`onfocus` payload then executed JavaScript in Chromium on the current target origin. Finally, Caido captured the application status response returning `solved: true` and the same flag displayed in the browser.
 
 The evidence chain supports a confirmed reflected XSS finding and excludes reflection-only, UI-only, and historical-result false positives.
 
 ```text
-CURRENT-INSTANCE FLAG: WEBVERSE{REDACTED}
+LAB FLAG: WEBVERSE{REDACTED}
 STATUS: SOLVED / VERIFIED
 ```

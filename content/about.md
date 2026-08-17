@@ -7,7 +7,7 @@ url: "/about/"
 
 ## Mdk22 Security Write-Ups
 
-This site documents evidence-backed web application security research performed in authorized educational laboratories and deliberately vulnerable training environments.
+This site documents web application security research performed in authorized educational labs and training environments built for testing.
 
 The write-ups focus on:
 

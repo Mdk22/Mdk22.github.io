@@ -17,7 +17,7 @@ buildExpired = false
 
 [params]
   author = "Mdk22"
-  description = "Evidence-backed web security lab write-ups from authorized educational environments."
+  description = "Step-by-step web security write-ups with requests, responses, commands, payloads, impact, and fixes from authorized training labs."
   defaultTheme = "dark"
   disableThemeToggle = false
   ShowReadingTime = true
@@ -28,7 +28,7 @@ buildExpired = false
 
 [params.homeInfoParams]
   Title = "Mdk22 Security Write-Ups"
-  Content = "Evidence-backed technical write-ups from authorized web security laboratories and deliberately vulnerable training environments."
+  Content = "Practical web security write-ups from authorized labs and purpose-built training environments."
 
 [params.assets]
   favicon = "favicon.ico"
