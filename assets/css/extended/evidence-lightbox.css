@@ -1,0 +1,223 @@
+.post-content img[data-evidence-lightbox="true"] {
+    cursor: zoom-in;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.post-content img[data-evidence-lightbox="true"]:hover {
+    box-shadow: 0 22px 52px var(--blacksite-shadow), 0 0 0 1px var(--blacksite-glow);
+    transform: translateY(-1px);
+}
+
+.post-content img[data-evidence-lightbox="true"]:focus-visible {
+    outline: 2px solid var(--blacksite-cyan);
+    outline-offset: 4px;
+}
+
+body.evidence-lightbox-open {
+    overflow: hidden;
+}
+
+.evidence-lightbox {
+    width: min(96vw, 1800px);
+    max-width: none;
+    height: 94vh;
+    max-height: none;
+    margin: auto;
+    padding: 0;
+    color: #e7eef2;
+    background: #080d10;
+    border: 1px solid #354750;
+    border-radius: 5px;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.72);
+    overflow: hidden;
+}
+
+.evidence-lightbox::backdrop {
+    background: rgba(2, 5, 7, 0.88);
+    backdrop-filter: blur(5px);
+}
+
+.evidence-lightbox__shell {
+    display: grid;
+    height: 100%;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.evidence-lightbox__header {
+    display: grid;
+    min-height: 54px;
+    padding: 8px 10px 8px 16px;
+    grid-template-columns: auto 1fr auto;
+    gap: 16px;
+    align-items: center;
+    font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    background: #0d151a;
+    border-bottom: 1px solid #26363e;
+}
+
+.evidence-lightbox__counter {
+    color: #a8ff14;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.evidence-lightbox__hint {
+    color: #98a7af;
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.evidence-lightbox__close,
+.evidence-lightbox__nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #dce6eb;
+    background: rgba(12, 22, 27, 0.88);
+    border: 1px solid #354750;
+    cursor: pointer;
+}
+
+.evidence-lightbox__close:hover,
+.evidence-lightbox__nav:hover,
+.evidence-lightbox__close:focus-visible,
+.evidence-lightbox__nav:focus-visible {
+    color: #081004;
+    background: #a8ff14;
+    border-color: #a8ff14;
+    outline: none;
+}
+
+.evidence-lightbox__close {
+    width: 38px;
+    height: 38px;
+    border-radius: 3px;
+    font-size: 1.55rem;
+    line-height: 1;
+}
+
+.evidence-lightbox__stage {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    padding: 22px 66px;
+    place-items: center;
+    background-color: #060a0c;
+    background-image:
+        linear-gradient(rgba(168, 255, 20, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(168, 255, 20, 0.025) 1px, transparent 1px);
+    background-size: 36px 36px;
+    overflow: auto;
+}
+
+.evidence-lightbox__image {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: calc(94vh - 138px);
+    margin: auto;
+    padding: 0;
+    background: #11191e;
+    border: 1px solid #425660;
+    border-radius: 3px;
+    box-shadow: 0 22px 58px rgba(0, 0, 0, 0.58);
+    cursor: zoom-in;
+    object-fit: contain;
+}
+
+.evidence-lightbox__image.is-zoomed {
+    max-width: none;
+    max-height: none;
+    cursor: zoom-out;
+}
+
+.evidence-lightbox__nav {
+    position: fixed;
+    top: 50%;
+    z-index: 2;
+    width: 44px;
+    height: 70px;
+    border-radius: 3px;
+    font-size: 2.25rem;
+    transform: translateY(-50%);
+}
+
+.evidence-lightbox__nav--previous {
+    left: calc(2vw + 12px);
+}
+
+.evidence-lightbox__nav--next {
+    right: calc(2vw + 12px);
+}
+
+.evidence-lightbox__caption {
+    min-height: 52px;
+    margin: 0;
+    padding: 14px 22px;
+    color: #bdc9cf;
+    background: #0d151a;
+    border-top: 1px solid #26363e;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .evidence-lightbox {
+        width: 100vw;
+        height: 100dvh;
+        border: 0;
+        border-radius: 0;
+    }
+
+    .evidence-lightbox__header {
+        min-height: 50px;
+        padding-left: 12px;
+        gap: 8px;
+    }
+
+    .evidence-lightbox__hint {
+        display: none;
+    }
+
+    .evidence-lightbox__stage {
+        padding: 18px 12px 78px;
+    }
+
+    .evidence-lightbox__image {
+        max-height: calc(100dvh - 190px);
+    }
+
+    .evidence-lightbox__nav {
+        position: absolute;
+        top: auto;
+        bottom: 16px;
+        width: 52px;
+        height: 46px;
+        transform: none;
+    }
+
+    .evidence-lightbox__nav--previous {
+        left: calc(50% - 62px);
+    }
+
+    .evidence-lightbox__nav--next {
+        right: calc(50% - 62px);
+    }
+
+    .evidence-lightbox__caption {
+        min-height: 58px;
+        padding: 12px 16px;
+        font-size: 0.78rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .post-content img[data-evidence-lightbox="true"] {
+        transition: none;
+    }
+}
