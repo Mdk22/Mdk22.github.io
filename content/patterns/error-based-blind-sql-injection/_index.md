@@ -5,5 +5,5 @@ definition: "An injected SQL predicate is converted into an observable error-ver
 discovery_signals:
   - "Logically true and false predicates consistently map to different HTTP outcomes."
   - "A deliberate database error can be conditionally triggered without exposing raw SQL errors."
-safe_validation: "Confirm the oracle repeatedly with harmless predicates, constrain extraction to the minimum authorized value, and stop immediately when the proof boundary is reached."
+safe_validation: "Confirm the oracle repeatedly with harmless predicates, extract only the value needed for proof, and stop as soon as that proof is complete."
 ---

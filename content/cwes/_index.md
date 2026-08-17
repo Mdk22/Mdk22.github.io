@@ -5,4 +5,4 @@ description: "Formal weakness classifications connected to reproduced Mdk22 case
 
 This archive connects published case files through evidence-supported Common Weakness Enumeration classifications.
 
-Each entry provides a local case index and a direct reference to the authoritative MITRE CWE record.
+Each entry provides a local case index and a direct link to the official MITRE CWE record.

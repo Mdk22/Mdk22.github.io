@@ -1,6 +1,6 @@
 ---
 title: "Case Archive"
-description: "Browse the full Mdk22 archive of reproduced, evidence-backed WebVerse security cases."
+description: "Browse every published WebVerse security case, including its requests, responses, screenshots, commands, payloads, impact, and fixes."
 layout: "archive"
 ---
 

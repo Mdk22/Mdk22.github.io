@@ -8,4 +8,4 @@ source_authority: "MITRE Common Weakness Enumeration"
 mitre_url: "https://cwe.mitre.org/data/definitions/89.html"
 ---
 
-Within this archive, CWE-89 is assigned only when controlled input changes SQL structure or behavior and the resulting database interaction is demonstrated with repeatable evidence. A generic server error after a quote is treated as a signal, not sufficient proof by itself.
+Within this archive, CWE-89 is assigned only when input changes SQL syntax or query behavior and the result can be repeated. A generic server error after a quote is only a lead, not proof by itself.

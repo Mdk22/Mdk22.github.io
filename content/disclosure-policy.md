@@ -6,7 +6,7 @@ url: "/disclosure-policy/"
 
 ## Authorized Environments
 
-All testing documented on this site was performed in authorized educational laboratories, deliberately vulnerable environments, or systems explicitly controlled for security training.
+All testing documented on this site was performed in authorized educational labs, purpose-built training environments, or systems explicitly approved for security testing.
 
 ## Sensitive Information
 

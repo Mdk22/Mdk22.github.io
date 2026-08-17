@@ -34,14 +34,14 @@
         <div class="bs2-status__item"><span class="bs2-status__label">Archive status</span><strong class="bs2-status__value bs2-status__value--active">Active</strong></div>
         <div class="bs2-status__item"><span class="bs2-status__label">Published cases</span><strong class="bs2-status__value">{{ printf "%02d" $publishedCount }}</strong></div>
         <div class="bs2-status__item"><span class="bs2-status__label">Primary platform</span><strong class="bs2-status__value">WebVerse</strong></div>
-        <div class="bs2-status__item"><span class="bs2-status__label">Evidence standard</span><strong class="bs2-status__value">Reproduced</strong></div>
+        <div class="bs2-status__item"><span class="bs2-status__label">Evidence included</span><strong class="bs2-status__value">Yes</strong></div>
         <div class="bs2-status__item"><span class="bs2-status__label">Featured case</span><strong class="bs2-status__value">{{ $latest.Params.lab }}</strong></div>
     </section>
 
     <section class="bs2-hero" aria-labelledby="bs2-home-title">
-        <div class="bs2-hero__classification">Authorized web security lab archive</div>
+        <div class="bs2-hero__classification">Practical web security lab write-ups</div>
         <h1 id="bs2-home-title">Mdk22 Security Write-Ups</h1>
-        <p class="bs2-hero__lead">Evidence-backed vulnerability reproductions, request-and-response analysis, false-positive controls, root-cause assessment, and remediation guidance from authorized training environments.</p>
+        <p class="bs2-hero__lead">Step-by-step security write-ups with the requests, responses, screenshots, commands, payloads, impact, and fixes from authorized training labs.</p>
         <div class="bs2-actions" aria-label="Homepage actions">
             <a class="bs2-button bs2-button--primary" href="{{ "/archive/" | relURL }}">Browse full archive</a>
             <a class="bs2-button" href="#research-paths">Explore intelligence</a>
@@ -59,28 +59,28 @@
     </section>
 
     <section id="case-files" class="bs2-archive" aria-labelledby="bs2-archive-title">
-        <div class="bs2-section-heading"><div><span class="bs2-kicker">Operational archive / recent records</span><h2 id="bs2-archive-title">Published case files</h2></div><span class="bs2-index-count">{{ printf "%02d" (len $recent) }} of {{ printf "%02d" $publishedCount }}</span></div>
+        <div class="bs2-section-heading"><div><span class="bs2-kicker">Latest write-ups</span><h2 id="bs2-archive-title">Published case files</h2></div><span class="bs2-index-count">{{ printf "%02d" (len $recent) }} of {{ printf "%02d" $publishedCount }}</span></div>
         <div class="bs2-case-grid">
             {{- range $recent }}{{ partial "archive-case-card.html" . }}{{ end -}}
         </div>
-        <div class="bs2-archive__footer"><p>The homepage stays intentionally compact. Search and filter every published case in the complete archive.</p><a class="bs2-button" href="{{ "/archive/" | relURL }}">View full archive / {{ printf "%02d" $publishedCount }} records</a></div>
+        <div class="bs2-archive__footer"><p>Use the full archive to search and filter every published case.</p><a class="bs2-button" href="{{ "/archive/" | relURL }}">View full archive / {{ printf "%02d" $publishedCount }} records</a></div>
     </section>
 
     <section id="research-paths" class="bs2-paths" aria-labelledby="bs2-paths-title">
-        <div class="bs2-section-heading"><div><span class="bs2-kicker">Research paths</span><h2 id="bs2-paths-title">Follow the intelligence model</h2></div></div>
+        <div class="bs2-section-heading"><div><span class="bs2-kicker">Explore the archive</span><h2 id="bs2-paths-title">Learn from connected cases</h2></div></div>
         <div class="bs2-path-grid">
             <a class="bs2-path" href="{{ "/cwes/" | relURL }}"><span>Root-cause taxonomy</span><strong>CWE Intelligence</strong><p>Trace each case to its primary weakness and related case history.</p><small>{{ printf "%02d" $cweCount }} tracked CWEs →</small></a>
-            <a class="bs2-path" href="{{ "/patterns/" | relURL }}"><span>Observed behavior</span><strong>Attack patterns</strong><p>Compare repeatable vulnerability patterns across independent case files.</p><small>{{ printf "%02d" $patternCount }} documented patterns →</small></a>
-            <a class="bs2-path" href="{{ "/methods/" | relURL }}"><span>Evidence workflow</span><strong>Research methods</strong><p>Review the validation methods that turn an observation into a bounded finding.</p><small>{{ printf "%02d" $methodCount }} documented methods →</small></a>
+            <a class="bs2-path" href="{{ "/patterns/" | relURL }}"><span>Observed behavior</span><strong>Attack patterns</strong><p>Compare vulnerability patterns that appear across published cases.</p><small>{{ printf "%02d" $patternCount }} documented patterns →</small></a>
+            <a class="bs2-path" href="{{ "/methods/" | relURL }}"><span>How the cases were tested</span><strong>Research methods</strong><p>See which checks turned an initial lead into a confirmed finding.</p><small>{{ printf "%02d" $methodCount }} documented methods →</small></a>
         </div>
     </section>
 
     <section class="bs2-intelligence" aria-labelledby="bs2-intelligence-title">
-        <div class="bs2-section-heading"><div><span class="bs2-kicker">Archive telemetry</span><h2 id="bs2-intelligence-title">Archive intelligence</h2></div></div>
-        <div class="bs2-stat-grid"><div class="bs2-stat"><strong>{{ printf "%02d" $publishedCount }}</strong><span>Published case files</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $verifiedCount }}</strong><span>Reproduced findings</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $caidoCount }}</strong><span>Caido-backed investigations</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $curlCount }}</strong><span>Independent curl validations</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $clientCount }}</strong><span>Client-side injection cases</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $accessCount }}</strong><span>Access / exposure cases</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $serverCount }}</strong><span>Server-side injection cases</span></div></div>
+        <div class="bs2-section-heading"><div><span class="bs2-kicker">Archive overview</span><h2 id="bs2-intelligence-title">What is in the archive</h2></div></div>
+        <div class="bs2-stat-grid"><div class="bs2-stat"><strong>{{ printf "%02d" $publishedCount }}</strong><span>Published case files</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $verifiedCount }}</strong><span>Reproduced findings</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $caidoCount }}</strong><span>Cases using Caido</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $curlCount }}</strong><span>curl reproductions</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $clientCount }}</strong><span>Client-side injection cases</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $accessCount }}</strong><span>Access / exposure cases</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $serverCount }}</strong><span>Server-side injection cases</span></div></div>
     </section>
 
-    <section class="bs2-notice" aria-labelledby="bs2-notice-title"><div class="bs2-notice__marker" aria-hidden="true">AUTHORIZED</div><div><h2 id="bs2-notice-title">Authorized research environments only</h2><p>All documented testing was performed in authorized educational laboratories and deliberately vulnerable training environments. Flags, credentials, tokens, and reusable secrets are redacted before publication.</p></div><a href="{{ "/about/" | relURL }}">Research scope</a></section>
+    <section class="bs2-notice" aria-labelledby="bs2-notice-title"><div class="bs2-notice__marker" aria-hidden="true">AUTHORIZED</div><div><h2 id="bs2-notice-title">Authorized research environments only</h2><p>All documented testing was performed in authorized educational labs or purpose-built training environments. Flags, credentials, tokens, and reusable secrets are redacted before publication.</p></div><a href="{{ "/about/" | relURL }}">Research scope</a></section>
     {{- else }}
     <section class="bs2-empty"><h1>Mdk22 Security Write-Ups</h1><p>No published case files are currently available.</p></section>
     {{- end }}

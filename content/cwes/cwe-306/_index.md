@@ -8,4 +8,4 @@ source_authority: "MITRE Common Weakness Enumeration"
 mitre_url: "https://cwe.mitre.org/data/definitions/306.html"
 ---
 
-Within this archive, CWE-306 is used only where reproduced evidence demonstrates that critical functionality was reachable without first establishing a provable user identity.
+Within this archive, CWE-306 is used only when a reproduced request reaches critical functionality without authentication.

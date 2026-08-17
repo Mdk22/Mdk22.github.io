@@ -1,11 +1,11 @@
 ---
-title: "WebVerse Calling Card — Client-Side Bearer Token Exposure to an Internal Probe"
+title: "WebVerse Calling Card: Client-Side Bearer Token Exposure to an Internal Probe"
 date: 2026-07-31T00:00:00+02:00
 lastmod: 2026-08-13T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A public disclosure page exposed a hard-coded bearer token that authorized an internal probe returning build data and the lab flag."
-summary: "Calling Card exposed a build-time bearer token in public inline JavaScript. A controlled 401-to-200 Caido differential and independent curl reproduction confirmed access to internal probe data."
+summary: "Calling Card exposed a build-time bearer token in public JavaScript. Caido showed a 401 without the token and a 200 with it, while curl returned the same internal probe data."
 categories:
   - "Web Security Write-Ups"
 tags:
@@ -52,13 +52,13 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorized educational lab reproduction. The client-side bearer token is redacted, the current-instance flag is represented as `WEBVERSE{REDACTED}`, and private raw evidence is excluded from publication.
+> **Publication note:** This article covers an authorized lab reproduction. The bearer token is redacted, the flag is shown as `WEBVERSE{REDACTED}`, and private raw evidence is not published.
 
 ## Executive Summary
 
-The Calling Card challenge was solved through a tightly bounded reconnaissance sequence that followed the application’s own security-disclosure metadata. The root /security.txt path returned 404, while the canonical /.well-known/security.txt document returned HTTP 200 and identified /contact-security as the relevant contact route. The public disclosure page then exposed an inline JavaScript probe implementation containing a build-time bearer token, the internal endpoint /internal/probe, the required POST method, and the exact Authorization header construction.
+The Calling Card challenge was solved through a short reconnaissance path that followed the application’s own security-disclosure metadata. The root /security.txt path returned 404, while the canonical /.well-known/security.txt document returned HTTP 200 and identified /contact-security as the relevant contact route. The public disclosure page then exposed an inline JavaScript probe implementation containing a build-time bearer token, the internal endpoint /internal/probe, the required POST method, and the exact Authorization header construction.
 
-A controlled Caido Replay comparison established the security effect. The endpoint returned HTTP 401 with "probe: token-invalid" when the Authorization header was absent, but the otherwise equivalent request returned HTTP 200 after the bearer token published in the page source was supplied. The JSON response disclosed a build identifier, current uptime, and the current-instance WebVerse flag. An independent curl request reproduced the same result, and WebVerse accepted the flag and marked the challenge as solved.
+I compared two requests in Caido Replay. Without `Authorization`, the endpoint returned HTTP 401 and `probe: token-invalid`. The same request returned HTTP 200 when I added the bearer token published in the page source. Its JSON body exposed a build ID, uptime, and the lab flag. Repeating the request with `curl` produced the same result, and WebVerse accepted the flag.
 
 > **CONFIRMED FINDING**
 >
@@ -109,7 +109,7 @@ WebVerse submission
 | Credential source | window.__PROBE_TOKEN in public inline JavaScript |
 | Authentication transport | Authorization: Bearer `<token>` |
 | Response type | application/json |
-| Security effect | The exposed credential changes the endpoint result from HTTP 401 to HTTP 200 and reveals build data plus the current-instance flag |
+| Security effect | The exposed credential changes the endpoint result from HTTP 401 to HTTP 200 and reveals build data plus the lab flag |
 
 ### Best-Fit Standards Mapping
 
@@ -120,7 +120,7 @@ WebVerse submission
 
 > **CLASSIFICATION LIMIT**
 >
-> Runtime evidence proves public delivery of the credential, a 401-to-200 authorization differential, and sensitive response disclosure. It does not establish the backend framework, token generation algorithm, deployment topology, token lifetime beyond the current instance, or the exact server-side authorization implementation.
+> The runtime checks confirm that the browser receives the credential and that it changes the probe response from 401 to 200. They do not identify the backend framework, token algorithm, deployment layout, token lifetime, or server-side authorization code.
 
 ## 3. Preconditions and Test Boundaries
 
@@ -134,15 +134,15 @@ WebVerse submission
 
 - The negative control omitted the Authorization header; the proof request added the exposed bearer token while preserving the endpoint and method.
 
-- Testing stopped after the current-instance flag was independently reproduced and accepted by WebVerse.
+- Testing stopped after the flag was reproduced with `curl` and accepted by WebVerse.
 
 ### Evidence Basis
 
 The conclusion is grounded in four evidence layers: Caido HTTP History for the legitimate disclosure flow, Caido Replay for the missing-token versus exposed-token differential, curl for a portable second-client reproduction, and the WebVerse solved-state dialog for final platform confirmation. Browser-runtime exploitation was not required because the security effect depended on server-side token acceptance rather than DOM or JavaScript execution.
 
-## 4. Security.txt Baseline and Location Differential
+## 4. Checking Both security.txt Locations
 
-The investigation began by validating the two relevant security.txt locations on the current instance. This avoided treating a route copied from historical solution material as current evidence and established the active hostname before any probe request was constructed.
+I began with the two relevant `security.txt` locations on the fresh lab host. This confirmed the live route instead of relying on a path copied from older notes.
 
 ```http
 GET /security.txt HTTP/1.1
@@ -151,13 +151,13 @@ Host: <LAB_HOST>
 
 ![Root security.txt request](01-caido-root-security-txt-request.png)
 
-*Figure 1 — Root security.txt request. Caido records the initial GET request to /security.txt on the fresh Calling Card host.*
+*Figure 1: Root security.txt request. Caido records the initial GET request to /security.txt on the fresh Calling Card host.*
 
 ![Root security.txt negative response](02-caido-root-security-txt-response.png)
 
-*Figure 2 — Root security.txt negative response. The server returns HTTP 404, confirming that the root path is not the active disclosure document.*
+*Figure 2: Root security.txt negative response. The server returns HTTP 404, confirming that the root path is not the active disclosure document.*
 
-The 404 response was a location control rather than evidence that the platform had no security.txt file. The canonical well-known location therefore remained the next bounded test.
+The 404 response was a location control rather than evidence that the platform had no security.txt file. The canonical well-known location therefore remained the next single test.
 
 ## 5. Canonical Disclosure Route Discovery
 
@@ -165,11 +165,11 @@ The canonical /.well-known/security.txt path returned a plaintext disclosure pol
 
 ![Canonical security.txt request](03-caido-well-known-security-txt-request.png)
 
-*Figure 3 — Canonical security.txt request. The request targets the standardized /.well-known/security.txt location on the current host.*
+*Figure 3: Canonical security.txt request. The request targets the standardized /.well-known/security.txt location on the current host.*
 
 ![Canonical security.txt response](04-caido-well-known-security-txt-response.png)
 
-*Figure 4 — Canonical security.txt response. HTTP 200 and Contact: /contact-security establish the exact public disclosure route.*
+*Figure 4: The standard `security.txt` location returns HTTP 200 and points to `/contact-security`.*
 
 ```text
 # Calling Card security disclosure policy
@@ -189,11 +189,11 @@ The /contact-security route was opened through the browser and captured in Caido
 
 ![Public disclosure page request](05-caido-contact-security-request.png)
 
-*Figure 5 — Public disclosure page request. The request shows an unauthenticated GET to /contact-security on the current Calling Card instance.*
+*Figure 5: Public disclosure page request. The request shows an unauthenticated GET to /contact-security on the current Calling Card instance.*
 
 ![Disclosure page response headers](06-caido-contact-security-response.png)
 
-*Figure 6 — Disclosure page response headers. Caido confirms HTTP 200 and public HTML content.*
+*Figure 6: Disclosure page response headers. Caido confirms HTTP 200 and public HTML content.*
 
 ```text
 Internal probe
@@ -203,7 +203,7 @@ Returns build & uptime; intended for our own deploy pipeline.
 Run internal probe
 ```
 
-The rendered wording already exposed the operational purpose of the function, but it did not by itself establish the endpoint, authentication contract, credential value, or sensitive response. Those elements were obtained from the raw HTML source.
+The rendered page described the function, but it did not show the endpoint, token, request format, or sensitive response. Those details appeared in the raw HTML source.
 
 ## 7. Critical Client-Side Credential Exposure
 
@@ -211,7 +211,7 @@ Inspection of the inline JavaScript revealed a static probe token injected durin
 
 ![Client-side probe contract in public HTML](07-caido-client-side-probe-contract-redacted.png)
 
-*Figure 7 — Client-side probe contract in public HTML. The public source exposes the redacted bearer token, POST /internal/probe, and the Bearer transport.*
+*Figure 7: Client-side probe contract in public HTML. The public source exposes the redacted bearer token, POST /internal/probe, and the Bearer transport.*
 
 ```javascript
 // Static probe token injected at build by our CI. Re-issued every deploy.
@@ -225,7 +225,7 @@ const r = await fetch('/internal/probe', {
 });
 ```
 
-### Why This Observation Was Decisive
+### Why the Source Code Mattered
 
 | Disclosed fact | Security meaning |
 | --- | --- |
@@ -239,41 +239,41 @@ const r = await fetch('/internal/probe', {
 >
 > A credential delivered to an anonymous browser cannot function as a secret trust boundary. Rotation may shorten its lifetime, but republishing every replacement token to the same untrusted clients preserves the underlying exposure.
 
-## 8. Controlled Validation: Missing-Token Replay
+## 8. Request Without the Token
 
-The disclosed endpoint contract was reconstructed in Caido Replay. The first request intentionally omitted the Authorization header while preserving the current host, POST method, and /internal/probe path. This established the endpoint’s unauthenticated behavior before the exposed credential was introduced.
+I rebuilt the request in Caido Replay. The first version omitted `Authorization` but kept the same host, `POST` method, and `/internal/probe` path. It recorded how the endpoint behaves without the exposed token.
 
 ![Probe request without Authorization](08-caido-probe-no-token-request.png)
 
-*Figure 8 — Probe request without Authorization. The negative-control request targets POST /internal/probe without a bearer credential.*
+*Figure 8: Probe request without Authorization. The negative-control request targets POST /internal/probe without a bearer credential.*
 
 ![Missing-token rejection](09-caido-probe-no-token-response.png)
 
-*Figure 9 — Missing-token rejection. The server returns HTTP 401 and probe: token-invalid.*
+*Figure 9: Missing-token rejection. The server returns HTTP 401 and probe: token-invalid.*
 
 > **NEGATIVE CONTROL RESULT**
 >
 > POST /internal/probe without Authorization returned HTTP 401 Unauthorized with {"detail":"probe: token-invalid"}. The endpoint existed, but the sensitive response remained inaccessible until a server-accepted credential was supplied.
 
-## 9. Controlled Validation: Exposed-Token Differential
+## 9. Comparing Requests Without and With the Token
 
-A duplicate Replay request then added the bearer token obtained from the public JavaScript. No body, query parameter, alternate route, or unrelated functional input was introduced. The Authorization header was the decisive change between the rejected control and the successful proof request.
+I duplicated the request and added the bearer token from the public JavaScript. Nothing else changed: no body, query parameter, alternate route, or unrelated input. The `Authorization` header was the only difference between rejection and success.
 
 ![Probe request with the exposed bearer token](10-caido-probe-valid-token-request-redacted.png)
 
-*Figure 10 — Probe request with the exposed bearer token. The proof request preserves the application-defined Bearer contract while redacting the credential.*
+*Figure 10: Probe request with the exposed bearer token. The proof request preserves the application-defined Bearer contract while redacting the credential.*
 
 ![Sensitive internal probe response](11-caido-probe-sensitive-response-redacted.png)
 
-*Figure 11 — Sensitive internal probe response. Caido shows HTTP 200, probe status ok, build metadata, uptime, and WEBVERSE{REDACTED}.*
+*Figure 11: Sensitive internal probe response. Caido shows HTTP 200, probe status ok, build metadata, uptime, and WEBVERSE{REDACTED}.*
 
-> **AUTHORIZATION DIFFERENTIAL**
+> **AUTHORIZATION RESULT**
 >
 > No Authorization header → HTTP 401 and probe: token-invalid. The same POST request with the bearer token published in window.__PROBE_TOKEN → HTTP 200 with probe status, build metadata, uptime, and WEBVERSE{REDACTED}.
 
-## 10. Independent curl Verification
+## 10. Repeating the Request with curl
 
-A second client independently reproduced the authorized probe request during the same session. This ruled out a Caido display artifact and produced a portable raw response. The public command and output retain only redacted credential and flag representations.
+A second client repeated the probe request during the same session. This ruled out a Caido display issue and produced a portable raw response. The public command and output contain only redacted token and flag values.
 
 ```bash
 curl --silent --show-error --include \
@@ -284,9 +284,9 @@ curl --silent --show-error --include \
   | tee Calling_Card_EV09_Curl_Valid_Token_Response_PRIVATE.txt
 ```
 
-![Independent curl reproduction](12-curl-valid-token-response-redacted.png)
+![curl reproduction](12-curl-valid-token-response-redacted.png)
 
-*Figure 12 — Independent curl reproduction. A second client reproduces HTTP 200 and the same material JSON result.*
+*Figure 12: `curl` returns HTTP 200 and the same JSON result.*
 
 ```http
 HTTP/2 200
@@ -296,15 +296,15 @@ content-length: 119
 {"probe":"ok","build":"calling-card-2026.05.14-r7","uptime_s":1101,"flag":"WEBVERSE{REDACTED}"}
 ```
 
-## 11. Final Platform Oracle
+## 11. WebVerse Result
 
-The complete flag recovered from the private raw response was submitted to WebVerse. The platform accepted it and marked Calling Card as solved, independently confirming that the disclosed value belonged to the active current instance.
+I submitted the full flag from the private response to WebVerse. The platform accepted it and marked Calling Card as solved.
 
 ![WebVerse challenge solved state](13-webverse-calling-card-solved-state.png)
 
-*Figure 13 — WebVerse challenge solved state. The platform confirms Challenge Solved and Flag accepted for Calling Card.*
+*Figure 13: WebVerse challenge solved state. The platform confirms Challenge Solved and Flag accepted for Calling Card.*
 
-> **CURRENT-INSTANCE FLAG**
+> **LAB FLAG**
 >
 > WEBVERSE{REDACTED}
 
@@ -314,7 +314,7 @@ The complete flag recovered from the private raw response was submitted to WebVe
 | --- | --- |
 | Caido History | The current-host security.txt differential, the public /contact-security flow, and the exact client-side credential and request contract. |
 | Caido Replay | The missing-token 401 control and the exposed-token 200 proof response containing sensitive operational data. |
-| curl | A second client independently reproduced the material result and current-instance flag during the same session. |
+| curl | A second client reproduced the HTTP 200 result and lab flag during the same session. |
 | WebVerse UI | The recovered flag was accepted and the challenge was marked solved. |
 
 ## 12. Root Cause
@@ -325,7 +325,7 @@ The build process injected a bearer token into inline JavaScript delivered to ev
 
 ### Public Routing of an Internal Probe
 
-The endpoint was reachable through the same public host used by the marketing and disclosure content. The /internal/ path segment was only a naming convention; it did not establish a network boundary or prevent external requests.
+The endpoint used the same public host as the marketing and disclosure pages. The `/internal/` name did not create a network boundary or stop external requests.
 
 ### Server Trust in a Publicly Recoverable Token
 
@@ -339,18 +339,18 @@ The successful response contained a build identifier, uptime, and the challenge 
 
 | Potential false conclusion | Control applied |
 | --- | --- |
-| A token string in JavaScript proves compromise | The token was used in a current-instance runtime request and produced a server-accepted authorization result. |
+| A token string in JavaScript proves compromise | The token was tested against the live probe and the server accepted it. |
 | The endpoint is effectively unauthenticated | The no-token Replay request returned HTTP 401, proving that the server did enforce a token check. |
 | Any valid token could have been used | Private evidence confirmed that the successful Replay value matched the token exposed in window.__PROBE_TOKEN. |
 | HTTP 200 alone proves sensitive disclosure | The JSON body was inspected and shown to contain build metadata, uptime, and the challenge secret. |
-| The result was a proxy display artifact | curl reproduced the same material result outside Caido. |
+| The result was a proxy display artifact | curl reproduced the same response outside Caido. |
 | The flag was stale or from another instance | It was obtained from the active hostname and accepted by WebVerse during the same session. |
 
 ## 14. Impact
 
 Within the lab, the issue resulted in complete compromise of the challenge objective. Any anonymous user who retrieved the disclosure page could recover the bearer token and access the probe response containing the flag.
 
-In an equivalent production environment, impact would depend on the probe’s real output and privileges. Plausible consequences include exposure of build identifiers, deployment timing, environment names, health information, internal service versions, or secrets. The lab evidence establishes only the data actually observed here; the additional examples describe production risk rather than findings about this target.
+In production, impact would depend on what the probe returns and what it can access. It could expose build IDs, deployment timing, environment names, health data, service versions, or secrets. In this lab, only the values shown in the evidence were confirmed.
 
 > **SEVERITY NOTE**
 >
@@ -363,7 +363,7 @@ In an equivalent production environment, impact would depend on the probe’s re
 | P0 | Remove client-side credentials | Do not inject bearer tokens, API keys, service credentials, or deploy secrets into HTML, JavaScript bundles, source maps, or any asset delivered to an untrusted browser. |
 | P0 | Remove public routing | Move the internal probe to a private management plane or restrict it at reverse-proxy, network, and service layers so that the public edge cannot reach it. |
 | P1 | Use workload identity | Replace shared static bearer tokens with short-lived service identity, mTLS, signed requests, cloud workload identity, or another service-to-service mechanism bound to the deploy pipeline. |
-| P1 | Enforce explicit authorization | Require an authenticated service principal with narrowly scoped permission. Do not treat possession of a credential published to anonymous clients as authorization. |
+| P1 | Enforce explicit authorization | Require an authenticated service principal with only the permissions it needs. Do not treat possession of a credential published to anonymous clients as authorization. |
 | P1 | Reduce response exposure | Return only the minimum non-sensitive health state required by the caller. Exclude flags, secrets, tokens, detailed environment data, and unnecessary build metadata. |
 | P1 | Add artifact secret scanning | Fail CI/CD when generated HTML, inline scripts, bundles, source maps, templates, or configuration files contain credentials or private endpoint contracts. |
 | P2 | Separate public and internal health checks | If a public status check is required, expose a distinct minimal endpoint while retaining detailed operational probes in a monitored private plane. |
@@ -386,7 +386,7 @@ In an equivalent production environment, impact would depend on the probe’s re
 
 > **AUTHORIZATION REQUIREMENT**
 >
-> Perform these steps only against the deliberately vulnerable WebVerse lab instance or another system for which explicit authorization exists.
+> Perform these steps only in the WebVerse lab or on another system you are explicitly authorized to test.
 
 1. Request /security.txt and record the expected 404 location control.
 
@@ -396,7 +396,7 @@ In an equivalent production environment, impact would depend on the probe’s re
 
 4. Send POST /internal/probe without Authorization and record the HTTP 401 token-invalid response.
 
-5. Repeat the same request with Authorization: Bearer `<current-instance token>` and verify HTTP 200 plus the JSON probe result.
+5. Repeat the request with `Authorization: Bearer <LAB_TOKEN>` and confirm HTTP 200 plus the JSON probe result.
 
 6. Reproduce the successful request with curl and submit the complete private flag to WebVerse.
 
@@ -422,17 +422,17 @@ curl --silent --show-error --include \
 | Build | calling-card-2026.05.14-r7 |
 | Uptime | Dynamic; 807 in Caido and 1101 in curl |
 | Flag | WEBVERSE{REDACTED} |
-| Platform result | Challenge Solved - Flag accepted |
+| Platform result | Challenge Solved, Flag accepted |
 
 ## 18. Conclusion
 
-Calling Card demonstrates why client-side source inspection must be treated as part of the application’s public attack surface. The decisive observation was not merely that an internal endpoint name appeared in JavaScript. The page also delivered the bearer credential required by that endpoint and defined the exact request contract needed to use it.
+Calling Card shows why client-side source belongs in the public attack surface. The important detail was not only the internal endpoint name. The page also delivered the bearer token and showed exactly how the browser sends it.
 
-The final evidence chain is complete and independently reproducible. The standardized security.txt document led to a public disclosure page. That page exposed a build-time bearer token and POST /internal/probe. Caido established that the endpoint rejected the request without a token but returned build data, uptime, and the current-instance flag when supplied with the published credential. curl reproduced the same material result, and WebVerse accepted the recovered flag.
+The standard `security.txt` file led to a public disclosure page. Its source exposed a build-time bearer token and `POST /internal/probe`. Caido showed a 401 without the token and a 200 with build data, uptime, and the lab flag after the token was added. `curl` repeated the result, and WebVerse accepted the recovered flag.
 
 > **FINAL VERDICT**
 >
-> CONFIRMED - A public disclosure page embedded a reusable bearer token in client-side JavaScript. The same token authorized access to a publicly reachable internal probe that returned sensitive operational data and the current-instance challenge secret.
+> CONFIRMED: A public disclosure page embedded a reusable bearer token in client-side JavaScript. The token opened a publicly reachable internal probe that returned operational data and the lab flag.
 
 ### Evidence Artifacts
 
@@ -443,6 +443,6 @@ The final evidence chain is complete and independently reproducible. The standar
 | EV03 Caido disclosure request/response | Public availability of /contact-security and its HTML. |
 | EV04 client-side probe contract | Exposed token assignment, endpoint, method, and Bearer transport; token redacted publicly. |
 | EV05 no-token Replay request/response | HTTP 401 negative control. |
-| EV06-EV08 valid-token Replay request/response | 401-to-200 differential, build data, uptime, and redacted current-instance flag. |
+| EV06-EV08 valid-token Replay request/response | 401-to-200 comparison, build data, uptime, and redacted lab flag. |
 | Calling_Card_EV09_Curl_Valid_Token_Response_PUBLIC.txt | Portable second-client response with the flag redacted. |
 | Calling_Card_EV10_WebVerse_Challenge_Solved.png | Platform solved-state confirmation. |

@@ -1,7 +1,7 @@
 ---
 title: "Public Metadata Route Disclosure"
 weight: 65
-definition: "Public application metadata exposes an internal or otherwise unadvertised route together with enough context to prioritise bounded validation."
+definition: "Public application metadata exposes an internal or otherwise unadvertised route together with enough context to prioritise focused validation."
 discovery_signals:
   - "A PWA manifest, AASA file, application-link declaration, or similar public artefact names non-navigation routes."
   - "An operational comment or route family distinguishes an internal candidate from ordinary public links."
