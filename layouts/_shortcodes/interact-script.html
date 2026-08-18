@@ -1,0 +1,76 @@
+{{- $track := .Get "track" | default "caido" -}}
+{{- $stage := .Get "stage" -}}
+{{- if not (in (slice "caido" "cli") $track) -}}
+  {{- errorf "interact-script: unsupported track %q at %s" $track .Position -}}
+{{- end -}}
+{{- if not (in (slice "stage1" "stage2" "stage3" "stage3b" "stage4") $stage) -}}
+  {{- errorf "interact-script: unsupported stage %q at %s" $stage .Position -}}
+{{- end -}}
+
+{{- $isCLI := eq $track "cli" -}}
+{{- $trackLabel := cond $isCLI "Terminal/CLI" "Caido/Burp" -}}
+{{- $prefix := cond $isCLI "owners-cli" "owners" -}}
+{{- $payloadName := printf "%s-%s.js" $prefix $stage -}}
+{{- $callback := printf "%s-%s-run1" $prefix $stage -}}
+{{- $guard := printf "%s-%s-run1" $prefix $stage -}}
+{{- $sourceName := "owners-interact-upload.template.js" -}}
+{{- $stageLabel := "Avatar upload" -}}
+{{- $uploadName := "" -}}
+
+{{- if eq $stage "stage1" -}}
+  {{- $sourceName = "owners-interact-stage1.template.js" -}}
+  {{- $stageLabel = "Staff-view callback" -}}
+  {{- $guard = cond $isCLI "__ownersCliStage1" "__ownersStage1HttpImage" -}}
+{{- else if eq $stage "stage2" -}}
+  {{- $sourceName = cond $isCLI "owners-interact-stage2-cli.template.js" "owners-interact-stage2.template.js" -}}
+  {{- $stageLabel = "Settings form mapper" -}}
+  {{- $guard = cond $isCLI "__ownersCliStage2" "__ownersStage2Structure" -}}
+  {{- $callback = cond $isCLI "owners-cli-stage2-run1" "owners-stage2-structure-run1" -}}
+{{- else if eq $stage "stage3" -}}
+  {{- $stageLabel = ".php negative control" -}}
+  {{- $uploadName = cond $isCLI "owners_cli_probe.php" "owners_flag_probe_run1.php" -}}
+  {{- $callback = printf "%s-stage3-php-run1" $prefix -}}
+  {{- $guard = cond $isCLI "owners-cli-stage3-php-run1" "owners-stage3-php-upload-run1" -}}
+{{- else if eq $stage "stage3b" -}}
+  {{- $stageLabel = ".php.jpg storage control" -}}
+  {{- $uploadName = cond $isCLI "owners_cli_probe.php.jpg" "owners_flag_probe_run1.php.jpg" -}}
+  {{- $callback = printf "%s-stage3b-phpjpg-run1" $prefix -}}
+  {{- $guard = cond $isCLI "owners-cli-stage3b-phpjpg-run1" "owners-stage3b-phpjpg-upload-run1" -}}
+{{- else if eq $stage "stage4" -}}
+  {{- $stageLabel = ".phtml execution check" -}}
+  {{- $uploadName = cond $isCLI "owners_cli_probe.phtml" "owners_flag_probe_run1.phtml" -}}
+  {{- $callback = printf "%s-stage4-phtml-run1" $prefix -}}
+  {{- $guard = cond $isCLI "owners-cli-stage4-phtml-run1" "owners-stage4-phtml-upload-run1" -}}
+{{- end -}}
+
+{{- $resource := .Page.Resources.GetMatch $sourceName -}}
+{{- if not $resource -}}
+  {{- errorf "interact-script: missing page resource %q at %s" $sourceName .Position -}}
+{{- end -}}
+{{- $script := $resource.Content -}}
+{{- $script = replace $script "__WINDOW_GUARD__" $guard -}}
+{{- $script = replace $script "__LOCAL_GUARD__" $guard -}}
+{{- $script = replace $script "__INTERACT_HOST__" "<INTERACT_HOST>" -}}
+{{- $script = replace $script "__CALLBACK__" $callback -}}
+{{- $script = replace $script "__UPLOAD_NAME__" $uploadName -}}
+{{- $id := printf "interact-%s-%s" $track $stage -}}
+
+<details class="interact-script" id="{{ $id }}">
+  <summary>
+    <span class="interact-script__mark" aria-hidden="true">&gt;_</span>
+    <span class="interact-script__title">Interact script</span>
+    <span class="interact-script__meta">{{ $stageLabel }} · {{ $trackLabel }}</span>
+    <span class="interact-script__action" aria-hidden="true">Open</span>
+  </summary>
+  <div class="interact-script__body">
+    <div class="interact-script__header">
+      <div>
+        <span class="interact-script__eyebrow">{{ $trackLabel }} payload</span>
+        <strong>{{ $payloadName }}</strong>
+      </div>
+      <span class="interact-script__callback">Callback: {{ $callback }}</span>
+    </div>
+    <p>This block keeps the full script, payload name, guard, and callback used for the {{ $trackLabel }} run.</p>
+    {{ transform.Highlight $script "javascript" "lineNos=false" }}
+  </div>
+</details>
