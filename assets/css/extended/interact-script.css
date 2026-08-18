@@ -1,0 +1,186 @@
+.interact-script {
+    margin: 1.35rem 0 1.7rem;
+    overflow: clip;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--blacksite-warning);
+    border-radius: var(--radius);
+    background: linear-gradient(145deg, var(--entry), var(--code-bg));
+    box-shadow: 0 12px 30px var(--blacksite-shadow);
+}
+
+.post-content .interact-script > summary {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.7rem;
+    min-height: 50px;
+    padding: 0.72rem 0.9rem;
+    color: var(--primary);
+    font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.interact-script > summary::-webkit-details-marker {
+    display: none;
+}
+
+.interact-script > summary::marker {
+    content: "";
+}
+
+.interact-script > summary:hover {
+    color: var(--blacksite-accent);
+    background: color-mix(in srgb, var(--blacksite-warning) 7%, transparent);
+}
+
+.interact-script__mark {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2rem;
+    min-height: 2rem;
+    border: 1px solid color-mix(in srgb, var(--blacksite-warning) 62%, var(--border));
+    border-radius: 3px;
+    color: var(--blacksite-warning);
+    background: color-mix(in srgb, var(--blacksite-warning) 9%, var(--code-bg));
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.interact-script__title {
+    color: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+}
+
+.interact-script__meta,
+.interact-script__action,
+.interact-script__eyebrow,
+.interact-script__callback {
+    font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.035em;
+}
+
+.interact-script__meta {
+    overflow: hidden;
+    color: var(--secondary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.interact-script__action {
+    color: var(--blacksite-warning);
+    font-weight: 750;
+    text-transform: uppercase;
+}
+
+.interact-script__action::after {
+    content: "+";
+    display: inline-block;
+    margin-left: 0.45rem;
+    font-size: 0.9rem;
+    transition: transform 160ms ease;
+}
+
+.interact-script[open] {
+    border-color: color-mix(in srgb, var(--blacksite-warning) 55%, var(--border));
+    box-shadow: 0 16px 38px var(--blacksite-shadow), 0 0 0 1px color-mix(in srgb, var(--blacksite-warning) 8%, transparent);
+}
+
+.interact-script[open] .interact-script__action::after {
+    transform: rotate(45deg);
+}
+
+.interact-script[open] .interact-script__action {
+    font-size: 0;
+}
+
+.interact-script[open] .interact-script__action::before {
+    content: "Close";
+    font-size: 0.68rem;
+}
+
+.interact-script__body {
+    padding: 1rem;
+    border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--code-block-bg) 88%, var(--entry));
+}
+
+.interact-script__header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+}
+
+.interact-script__header > div {
+    display: grid;
+    gap: 0.18rem;
+}
+
+.interact-script__header strong {
+    color: var(--primary);
+    font-family: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    font-size: 0.84rem;
+}
+
+.interact-script__eyebrow {
+    color: var(--blacksite-warning);
+    text-transform: uppercase;
+}
+
+.interact-script__callback {
+    color: var(--secondary);
+    text-align: right;
+}
+
+.post-content .interact-script__body > p {
+    margin: 0 0 0.95rem;
+    color: var(--secondary);
+    font-size: 0.88rem;
+}
+
+.post-content .interact-script__body .highlight {
+    margin: 0;
+    max-width: 100%;
+    box-shadow: none;
+}
+
+@media (max-width: 640px) {
+    .post-content .interact-script > summary {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 0.55rem;
+    }
+
+    .interact-script__meta {
+        grid-column: 2 / -1;
+        grid-row: 2;
+        white-space: normal;
+    }
+
+    .interact-script__action {
+        grid-column: 3;
+        grid-row: 1;
+    }
+
+    .interact-script__header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .interact-script__callback {
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .interact-script__action::after {
+        transition: none;
+    }
+}

