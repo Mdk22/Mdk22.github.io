@@ -27,7 +27,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-014"
-case_featured: true
+case_featured: false
 case_summary_short: "JSON query operators changed server-side catalogue filters and returned an archived internal product."
 case_status: "SOLVED / VERIFIED"
 case_classification: "JSON Query Operator Injection / Access-Control Filter Override"
