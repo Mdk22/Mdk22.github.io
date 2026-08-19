@@ -1,0 +1,31 @@
+{{- $file := .Get "file" -}}
+{{- $lang := .Get "lang" | default "text" -}}
+{{- $title := .Get "title" | default "Full script" -}}
+{{- $meta := .Get "meta" | default "Copyable source" -}}
+{{- if not $file -}}
+  {{- errorf "code-resource: missing file at %s" .Position -}}
+{{- end -}}
+{{- $resource := .Page.Resources.GetMatch $file -}}
+{{- if not $resource -}}
+  {{- errorf "code-resource: missing page resource %q at %s" $file .Position -}}
+{{- end -}}
+{{- $id := printf "code-resource-%s" ($file | urlize) -}}
+
+<details class="interact-script code-resource" id="{{ $id }}">
+  <summary>
+    <span class="interact-script__mark" aria-hidden="true">&gt;_</span>
+    <span class="interact-script__title">{{ $title }}</span>
+    <span class="interact-script__meta">{{ $meta }}</span>
+    <span class="interact-script__action" aria-hidden="true">Open</span>
+  </summary>
+  <div class="interact-script__body">
+    <div class="interact-script__header">
+      <div>
+        <span class="interact-script__eyebrow">Copyable source</span>
+        <strong>{{ $file }}</strong>
+      </div>
+      <span class="interact-script__callback">Language: {{ $lang }}</span>
+    </div>
+    {{ transform.Highlight $resource.Content $lang "lineNos=false" }}
+  </div>
+</details>
