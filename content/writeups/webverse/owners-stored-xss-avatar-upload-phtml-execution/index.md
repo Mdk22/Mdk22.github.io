@@ -24,7 +24,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-015"
-case_featured: true
+case_featured: false
 case_summary_short: "A stored contact message reached the staff browser and chained into .phtml execution through the avatar upload."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Stored XSS / Dangerous File Upload"
