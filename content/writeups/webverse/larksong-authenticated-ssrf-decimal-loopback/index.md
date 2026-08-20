@@ -23,7 +23,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-016"
-case_featured: true
+case_featured: false
 case_summary_short: "A decimal IPv4 loopback form bypassed the photo URL filter and exposed internal HTTP responses through the sighting preview."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Authenticated SSRF / Loopback Filter Bypass"
