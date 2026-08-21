@@ -23,7 +23,7 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-017"
-case_featured: true
+case_featured: false
 case_summary_short: "The public download parameter accepted ../ path traversal and returned known local content outside the intended book directory."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Path Traversal / Local File Read"
