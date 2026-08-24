@@ -25,7 +25,7 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-018"
-case_featured: true
+case_featured: false
 case_summary_short: "The default admin password opened the printer dashboard and exposed recent job metadata plus a remote service key."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Default Password / Administrative Access"
