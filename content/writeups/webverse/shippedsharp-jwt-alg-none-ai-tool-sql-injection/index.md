@@ -27,7 +27,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-019"
-case_featured: true
+case_featured: false
 case_summary_short: "An unsigned admin JWT opened the manager console, then a controlled AI tool argument reached SQLite and returned one internal configuration value."
 case_status: "SOLVED / VERIFIED"
 case_classification: "JWT Signature Bypass / AI Tool SQL Injection"

