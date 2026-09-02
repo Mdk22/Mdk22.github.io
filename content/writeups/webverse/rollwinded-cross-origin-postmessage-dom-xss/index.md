@@ -25,7 +25,7 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-020"
-case_featured: true
+case_featured: false
 case_summary_short: "ScoreCast accepted cross-origin message data without checking its sender, then inserted the string into innerHTML and executed a controlled browser payload."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Origin Validation Error / DOM XSS"
