@@ -25,7 +25,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-021"
-case_featured: true
+case_featured: false
 case_summary_short: "An unsigned PHP object import accepted changed RenderCache properties and wrote controlled PHP into the executable webroot."
 case_status: "SOLVED / VERIFIED"
 case_classification: "PHP Object Injection / Webroot File Write"
