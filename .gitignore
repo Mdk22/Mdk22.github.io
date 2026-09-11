@@ -9,3 +9,6 @@ Thumbs.db
 
 # Local editor files
 .vscode/
+
+# Local Codex project configuration and hooks
+/.codex/

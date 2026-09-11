@@ -23,6 +23,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-008"
+case_featured: false
+case_summary_short: "SQL comment syntax in the legacy seller login bypassed password authentication and opened the platform admin session."
 case_status: "SOLVED / VERIFIED"
 case_classification: "SQL Injection Authentication Bypass"
 case_family: "server-side-injection"

@@ -36,6 +36,10 @@ jobs:
 
           sudo dpkg -i "${RUNNER_TEMP}/hugo.deb"
 
+      - name: Audit write-up publication state
+        shell: pwsh
+        run: ./scripts/Test-WriteupPublication.ps1 -Ci
+
       - name: Configure GitHub Pages
         id: pages
         uses: actions/configure-pages@v6
@@ -49,6 +53,13 @@ jobs:
             --gc \
             --minify \
             --baseURL "${{ steps.pages.outputs.base_url }}/"
+
+      - name: Check rendered internal links and assets
+        shell: pwsh
+        run: >-
+          ./scripts/Test-RenderedSite.ps1
+          -SiteRoot ./public
+          -BaseUrl "${{ steps.pages.outputs.base_url }}/"
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v5

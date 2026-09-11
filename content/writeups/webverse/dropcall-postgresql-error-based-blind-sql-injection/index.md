@@ -25,6 +25,8 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-006"
+case_featured: false
+case_summary_short: "A public search parameter supported a PostgreSQL conditional-error channel that recovered one internal configuration value."
 case_status: "SOLVED / VERIFIED"
 case_classification: "PostgreSQL Error-Based Blind SQL Injection"
 case_family: "server-side-injection"

@@ -29,6 +29,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-004"
+case_featured: false
+case_summary_short: "A production HTML comment exposed an internal build endpoint that returned build data and the Lab objective without authentication."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Internal Endpoint Exposure"
 case_family: "access-exposure"

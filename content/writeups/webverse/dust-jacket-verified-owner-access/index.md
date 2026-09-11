@@ -32,6 +32,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-003"
+case_featured: false
+case_summary_short: "A public migration backup exposed an OWNER_KEY that still unlocked the owner console without authentication."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Sensitive Backup and Credential Exposure"
 case_family: "access-exposure"

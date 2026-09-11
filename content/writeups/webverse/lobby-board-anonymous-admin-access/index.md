@@ -26,6 +26,8 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-002"
+case_featured: false
+case_summary_short: "A public Next.js build manifest exposed an admin route that returned the real submissions board without authentication."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Anonymous Administrative Access"
 case_family: "access-exposure"

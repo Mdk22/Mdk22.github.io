@@ -1,0 +1,28 @@
+case:
+  lab: ""
+  candidate_folder: ""
+  reproduction_date: ""
+  story:
+    starting_point: ""
+    first_signal: ""
+    useful_control_or_failed_attempt: ""
+    chain_closure: ""
+    unique_detail: ""
+
+evidence:
+  - id: "E-01"
+    order: 1
+    stage: "recon"
+    client: "caido"
+    source_file: ""
+    screenshot: ""
+    request_or_action: ""
+    payload: ""
+    terminal_command: ""
+    observed_result: ""
+    supported_claim: ""
+    redaction:
+      required: false
+      reason: ""
+    publish: true
+    notes: ""

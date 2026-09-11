@@ -26,6 +26,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-005"
+case_featured: false
+case_summary_short: "Public JavaScript exposed a bearer token that authorized an internal probe without a user session."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Client-Side Hard-Coded Bearer Token Exposure"
 case_family: "access-exposure"

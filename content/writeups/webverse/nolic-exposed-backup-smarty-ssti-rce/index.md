@@ -32,6 +32,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-007"
+case_featured: false
+case_summary_short: "A public backup led to offline password recovery, authenticated Smarty template injection, and operating-system command execution."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Authenticated Smarty SSTI to OS Command Execution"
 case_family: "server-side-injection"

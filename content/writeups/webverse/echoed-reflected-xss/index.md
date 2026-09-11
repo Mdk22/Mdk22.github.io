@@ -22,6 +22,8 @@ difficulty: "Easy"
 showToc: true
 TocOpen: false
 case_id: "CASE-001"
+case_featured: false
+case_summary_short: "A reflected search value broke out of a quoted HTML attribute and ran a small JavaScript marker in Chromium."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Reflected XSS"
 case_family: "client-side-injection"
