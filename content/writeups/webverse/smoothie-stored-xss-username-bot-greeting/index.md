@@ -23,7 +23,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-022"
-case_featured: true
+case_featured: false
 case_summary_short: "A stored username was escaped in the page header but rendered as raw HTML in the first bot message, allowing JavaScript execution in the Smoothie origin."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Stored XSS / Output Encoding Failure"
