@@ -25,7 +25,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-023"
-case_featured: true
+case_featured: false
 case_summary_short: "A public .git directory exposed the X-User trust contract and the administrator identity accepted by the directly reachable staging backend."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Exposed Git Repository / Trusted Header Authentication Bypass"

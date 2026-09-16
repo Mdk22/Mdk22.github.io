@@ -151,6 +151,10 @@
     box-shadow: none;
 }
 
+.post-content .code-resource .copy-code {
+    display: block;
+}
+
 @media (max-width: 640px) {
     .post-content .interact-script > summary {
         grid-template-columns: auto minmax(0, 1fr) auto;
