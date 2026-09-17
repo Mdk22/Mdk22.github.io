@@ -24,7 +24,7 @@ difficulty: "Medium"
 showToc: true
 TocOpen: false
 case_id: "CASE-024"
-case_featured: true
+case_featured: false
 case_summary_short: "A contact-form email changed mailer options, wrote a transcript into the webroot, then reached PHP execution through a .php log."
 case_status: "SOLVED / VERIFIED"
 case_classification: "Mailer Argument Injection / Webroot PHP Execution"
