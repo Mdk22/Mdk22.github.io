@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07100c"/>
+      <stop offset="0.55" stop-color="#0a1116"/>
+      <stop offset="1" stop-color="#081014"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#203029" stroke-width="1" opacity=".4"/>
+    </pattern>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect x="46" y="42" width="1108" height="546" rx="12" fill="#0b1217" stroke="#263a43" stroke-width="2"/>
+  <rect x="46" y="42" width="5" height="546" rx="2.5" fill="#a8ff0a"/>
+
+  <circle cx="1048" cy="181" r="137" fill="none" stroke="#24313a" stroke-width="2" opacity=".65"/>
+  <circle cx="1048" cy="181" r="93" fill="none" stroke="#24313a" stroke-width="2" opacity=".65"/>
+  <circle cx="1048" cy="181" r="48" fill="none" stroke="#a8ff0a" stroke-width="3" opacity=".28" filter="url(#glow)"/>
+
+  <text x="94" y="105" fill="#a8ff0a" font-family="Cascadia Code, Consolas, monospace" font-size="17" font-weight="700" letter-spacing="3">AUTHORIZED LAB ARCHIVE</text>
+  <text x="94" y="205" fill="#edf5f7" font-family="Cascadia Code, Consolas, monospace" font-size="61" font-weight="700" letter-spacing="-3">Mdk22 Security</text>
+  <text x="94" y="276" fill="#edf5f7" font-family="Cascadia Code, Consolas, monospace" font-size="61" font-weight="700" letter-spacing="-3">Write-Ups</text>
+
+  <text x="94" y="352" fill="#8edaf2" font-family="Segoe UI, Arial, sans-serif" font-size="27">Requests, responses, commands, payloads, impact, and fixes.</text>
+
+  <rect x="94" y="400" width="370" height="98" rx="5" fill="#080d11" stroke="#344954"/>
+  <text x="119" y="436" fill="#7d929d" font-family="Cascadia Code, Consolas, monospace" font-size="14" letter-spacing="2">PUBLISHED CASE FILES</text>
+  <text x="119" y="481" fill="#a8ff0a" font-family="Cascadia Code, Consolas, monospace" font-size="46" font-weight="700">25</text>
+
+  <rect x="484" y="400" width="270" height="98" rx="5" fill="#080d11" stroke="#344954"/>
+  <text x="509" y="436" fill="#7d929d" font-family="Cascadia Code, Consolas, monospace" font-size="14" letter-spacing="2">REPRODUCTION</text>
+  <text x="509" y="476" fill="#edf5f7" font-family="Cascadia Code, Consolas, monospace" font-size="24" font-weight="700">CAIDO + CLI</text>
+
+  <text x="94" y="552" fill="#647985" font-family="Cascadia Code, Consolas, monospace" font-size="15" letter-spacing="2">MDK22.GITHUB.IO</text>
+  <text x="1104" y="552" fill="#647985" font-family="Cascadia Code, Consolas, monospace" font-size="13" letter-spacing="2" text-anchor="end">CASE ARCHIVE / PUBLIC RELEASE</text>
+</svg>

@@ -798,6 +798,10 @@
         padding-top: 20px;
     }
 
+    .bs2-home:not(.bsarc) > .bs2-hero {
+        order: -1;
+    }
+
     .bs2-status {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -818,6 +822,10 @@
         grid-column: 1 / -1;
         border-right: 0;
         border-bottom: 0;
+    }
+
+    .bs2-status__item {
+        padding: 12px 14px;
     }
 
     .bs2-hero {
@@ -879,11 +887,59 @@
     .bsarc-filters {
         grid-template-columns: 1fr;
     }
+
+    .bsarc-hero {
+        display: contents;
+    }
+
+    .bsarc-hero > div {
+        order: 0;
+        padding: 28px 22px;
+        background: linear-gradient(145deg, var(--bs2-panel), var(--blacksite-surface));
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--blacksite-accent);
+        border-radius: var(--radius);
+        box-shadow: 0 20px 52px var(--blacksite-shadow);
+    }
+
+    .bsarc-controls {
+        order: 1;
+    }
+
+    .bsarc-hero dl {
+        order: 2;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .bsarc-hero dl div,
+    .bsarc-hero dl div:nth-child(2n),
+    .bsarc-hero dl div:nth-last-child(-n + 2) {
+        padding: 13px 10px;
+        border-right: 1px solid var(--border);
+        border-bottom: 0;
+    }
+
+    .bsarc-hero dl div:last-child {
+        border-right: 0;
+    }
+
+    .bsarc-hero dt {
+        font-size: 0.52rem;
+        line-height: 1.35;
+    }
+
+    .bsarc-hero dd {
+        font-size: 1.15rem;
+    }
+
+    .bsarc-results {
+        order: 3;
+    }
 }
 
 @media (max-width: 480px) {
     .bs2-status {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .bs2-status__item,
@@ -892,11 +948,17 @@
     .bs2-status__item:nth-child(even),
     .bs2-status__item:last-child {
         grid-column: auto;
-        border-right: 0;
+        border-right: 1px solid var(--border);
         border-bottom: 1px solid var(--border);
     }
 
+    .bs2-status__item:nth-child(even) {
+        border-right: 0;
+    }
+
     .bs2-status__item:last-child {
+        grid-column: 1 / -1;
+        border-right: 0;
         border-bottom: 0;
     }
 
@@ -923,21 +985,32 @@
         gap: 8px;
     }
 
-    .bsarc-hero,
     .bsarc-controls,
     .bsarc-results {
         padding: 24px 20px;
     }
 
+    .bsarc-hero > div {
+        padding: 26px 20px;
+    }
+
     .bsarc-hero dl {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .bsarc-hero dl div,
     .bsarc-hero dl div:nth-child(2n),
     .bsarc-hero dl div:nth-last-child(-n + 2) {
-        border-right: 0;
+        border-right: 1px solid var(--border);
         border-bottom: 1px solid var(--border);
+    }
+
+    .bsarc-hero dl div:nth-child(2n) {
+        border-right: 0;
+    }
+
+    .bsarc-hero dl div:nth-last-child(-n + 2) {
+        border-bottom: 0;
     }
 
     .bsarc-hero dl div:last-child {

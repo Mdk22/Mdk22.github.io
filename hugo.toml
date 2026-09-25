@@ -18,6 +18,7 @@ buildExpired = false
 [params]
   author = "Mdk22"
   description = "Step-by-step web security write-ups with requests, responses, commands, payloads, impact, and fixes from authorized training labs."
+  images = ["/images/mdk22-social-card.png"]
   defaultTheme = "dark"
   disableThemeToggle = false
   ShowReadingTime = true
@@ -37,6 +38,10 @@ buildExpired = false
   apple_touch_icon = "apple-touch-icon.png"
   safari_pinned_tab = "safari-pinned-tab.svg"
 
+[params.schema]
+  publisherType = "Person"
+  sameAs = ["https://github.com/Mdk22"]
+
 [[params.socialIcons]]
   name = "github"
   url = "https://github.com/Mdk22"
@@ -46,7 +51,7 @@ buildExpired = false
 [[menus.main]]
   identifier = "writeups"
   name = "Write-Ups"
-  url = "/writeups/"
+  url = "/archive/"
   weight = 10
 
 [[menus.main]]
