@@ -48,7 +48,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 19 August 2026. Credentials, session cookies, fresh object IDs, and the literal challenge proof are redacted. Public commands use `<LAB_HOST>` and other clear placeholders.
+> **Lab note:** Larksong was reproduced on 19 August 2026 in an authorised WebVerse lab. Credentials, session cookies, fresh object IDs, and the literal challenge proof are redacted. Public commands use `<LAB_HOST>` and other clear placeholders.
 
 ## Executive Summary
 
@@ -56,7 +56,7 @@ Larksong lets a signed-in user attach a remote photo to a bird sighting. The app
 
 I then changed only the host representation. The decimal IPv4 value `2130706433` points to `127.0.0.1`, but Larksong accepted it. The created sighting displayed the internal service response inside `fallback__body`, which confirmed the server-side fetch. A request to port `3002` returned `ECONNREFUSED 127.0.0.1:3002`, giving a clear service-state comparison. The source-defined port `9090` returned the redacted lab objective through the same readback path.
 
-I reproduced the chain in Caido and then repeated it with `curl`. Testing stopped after WebVerse accepted the objective.
+The same chain was repeated with `curl` after the Caido run. Testing stopped after WebVerse accepted the objective.
 
 > **CONFIRMED FINDING**
 >
@@ -106,7 +106,7 @@ Stop
 I kept the work inside authorised Larksong instances and used the application flow exposed by the sighting form.
 
 - I did not publish the account password, session cookie, fresh sighting IDs, or literal objective.
-- I used one refused-port control in the clean reproduction. The extra failed ports from the working notes add no new proof and are not part of this article.
+- I used one refused-port control in the clean reproduction. The extra failed ports from the working notes add no new proof and are not part of this write-up.
 - Port `9090` came from the original solved path. I did not find it by scanning a fresh instance.
 - The tests confirm loopback HTTP access for the shown ports. They do not confirm cloud metadata access, arbitrary internal CIDRs, non-HTTP schemes, authenticated internal services, or write access.
 - A `302` after the sighting POST only means a sighting was created. The later response-body readback is what confirms SSRF.
@@ -152,7 +152,7 @@ curl -sk -i 'https://<LAB_HOST>/' | sed -n '1,45p'
 
 **Figure 3: Browser baseline.** The rendered page confirms that the active target is Larksong before any reproduction step begins.
 
-I registered a normal lab account. The public copy below keeps the credentials out of the article.
+A normal lab account provided the authenticated session. The public copy below keeps the credentials out of the write-up.
 
 ```http
 POST /register HTTP/1.1
@@ -428,7 +428,7 @@ Photo source: http://2130706433:3000/
 
 ### Step 7: Compare One Refused Port
 
-I changed only the port to `3002`.
+Only the port changed to `3002`.
 
 ```text
 Decoded: http://2130706433:3002/
@@ -549,7 +549,7 @@ Content-Type: text/html; charset=utf-8
 
 ## 5. Terminal/CLI Reproduction
 
-I repeated the same chain with `curl` and a separate cookie jar on the same active lab instance. The commands below are the clean working versions from the transcript. The failed `zsh` prompt syntax and wrong-password response stay in the private session record because neither contributed to the finding.
+The Terminal track repeated the same chain with `curl` and a separate cookie jar on the same active lab instance. The commands below are the clean working versions from the transcript. The failed `zsh` prompt syntax and wrong-password response stay in the private session record because neither contributed to the finding.
 
 Set the current target once:
 

@@ -63,7 +63,7 @@ methods:
   - "Independent curl Verification"
 ---
 
-> **Publication note:** This article covers an authorized lab reproduction. The flag is shown as `WEBVERSE{REDACTED}`. Database credentials, WordPress keys, the reusable `OWNER_KEY`, Cloudflare clearance values, and raw secret-bearing evidence are not published. Copyable requests use `<LAB_HOST>`, while screenshots keep the non-secret request context.
+> **Lab note:** Dust Jacket was reproduced in an authorized lab. The flag appears as `WEBVERSE{REDACTED}`. Database credentials, WordPress keys, the reusable `OWNER_KEY`, Cloudflare clearance values, and raw evidence containing secrets are not published. Copyable requests use `<LAB_HOST>`, while screenshots keep the safe request context.
 
 ## Executive Summary
 

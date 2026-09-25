@@ -54,7 +54,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article covers an authorized lab reproduction. The bearer token is redacted, the flag is shown as `WEBVERSE{REDACTED}`, and private raw evidence is not published.
+> **Lab note:** Calling Card was reproduced in an authorized lab. The bearer token is redacted, the flag appears as `WEBVERSE{REDACTED}`, and private raw evidence is not published.
 
 ## Executive Summary
 
@@ -259,7 +259,7 @@ I rebuilt the request in Caido Replay. The first version omitted `Authorization`
 
 ## 9. Comparing Requests Without and With the Token
 
-I duplicated the request and added the bearer token from the public JavaScript. Nothing else changed: no body, query parameter, alternate route, or unrelated input. The `Authorization` header was the only difference between rejection and success.
+The comparison request added the bearer token from the public JavaScript. Nothing else changed: no body, query parameter, alternate route, or unrelated input. The `Authorization` header was the only difference between rejection and success.
 
 ![Probe request with the exposed bearer token](10-caido-probe-valid-token-request-redacted.png)
 

@@ -51,7 +51,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 27 August 2026. Caido discovery and browser execution used two fresh instances because the first instance was replaced before the runtime step. Terminal and browser used another fresh instance for a clean before-and-after check. Commands use `<CAIDO_DISCOVERY_HOST>`, `<CAIDO_RUNTIME_HOST>`, and `<TERMINAL_LAB_HOST>`. Literal challenge flags are shown as `WEBVERSE{REDACTED}`.
+> **Lab note:** RollWinded was reproduced on 27 August 2026. Caido discovery and browser execution used two fresh WebVerse instances because the first one was replaced before the runtime step. Terminal and browser used another fresh instance for a clean before-and-after check. Commands use `<CAIDO_DISCOVERY_HOST>`, `<CAIDO_RUNTIME_HOST>`, and `<TERMINAL_LAB_HOST>`. Literal challenge flags appear as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 
@@ -110,7 +110,7 @@ Stop
 
 I stayed inside fresh RollWinded lab instances and stopped after the objective was confirmed.
 
-- The Caido discovery instance and the Caido runtime instance are different. The article keeps that change visible instead of presenting them as one uninterrupted instance.
+- The Caido discovery instance and the Caido runtime instance are different. The write-up keeps that change visible instead of presenting them as one uninterrupted instance.
 - The Terminal run uses one fresh instance and contains the clean `false` to `true` status check.
 - The browser step is required. `curl` can retrieve the page, scripts, and status endpoint, but it cannot run `postMessage`, build a DOM, or execute JavaScript.
 - The retained Caido marker screenshot shows controlled HTML in the feed. The solved banner and status response are the stronger retained proof that the handler executed in the target page.
@@ -318,7 +318,7 @@ The generated page should contain one **Send controlled message** button. Clicki
 
 #### Exact URL Used in This Reproduction
 
-The block below is the exact encoded `data:` URL from my Caido/browser run. It stays in the article as reproduction evidence. Its temporary hostname should not be reused for another instance.
+The block below is the exact encoded `data:` URL from my Caido/browser run. It stays in the write-up as reproduction evidence. Its temporary hostname should not be reused for another instance.
 
 {{< code-resource file="rollwinded-caido-exact-data-url.txt" lang="text" title="Exact Caido data URL payload" meta="Browser · exact reproduced payload" >}}
 
@@ -569,7 +569,7 @@ The `typeof e.data === "string"` check only verifies a data type. It does not ve
 
 The confirmed result is JavaScript execution in the ScoreCast page through a cross-origin message. The test used a fixed marker and a document-title change, then stopped when WebVerse marked the lab solved.
 
-This article does not claim access to cookies, credentials, private user data, or server-side functions. Those effects were not tested. The practical risk in another application would depend on what the target origin exposes to JavaScript and which users can be made to open or retain a reference to that window.
+This write-up does not claim access to cookies, credentials, private user data, or server-side functions. Those effects were not tested. The practical risk in another application would depend on what the target origin exposes to JavaScript and which users can be made to open or retain a reference to that window.
 
 ## 9. Remediation
 

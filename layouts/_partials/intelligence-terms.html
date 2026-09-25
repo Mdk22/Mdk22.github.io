@@ -9,16 +9,16 @@
             <p>{{ .Lead }}</p>
         </div>
         <dl>
-            <div><dt>Registry terms</dt><dd>{{ printf "%02d" (len $terms) }}</dd></div>
-            <div><dt>Source model</dt><dd>Canonical case metadata</dd></div>
+            <div><dt>Listed {{ cond (eq .Kind "pattern") "patterns" "methods" }}</dt><dd>{{ printf "%02d" (len $terms) }}</dd></div>
+            <div><dt>Source</dt><dd>Published case metadata</dd></div>
         </dl>
     </header>
 
     <section class="bsintel-registry" aria-labelledby="bsintel-registry-title">
         <div class="bscwe-section-heading">
             <div>
-                <span class="bscwe-kicker">Security terms used in this case</span>
-                <h2 id="bsintel-registry-title">Published {{ .Kind }} terms</h2>
+                <span class="bscwe-kicker">{{ if eq .Kind "pattern" }}Patterns found across the archive{{ else }}Methods used across the archive{{ end }}</span>
+                <h2 id="bsintel-registry-title">Published {{ cond (eq .Kind "pattern") "patterns" "methods" }}</h2>
             </div>
             <span>{{ len $terms }} indexed</span>
         </div>

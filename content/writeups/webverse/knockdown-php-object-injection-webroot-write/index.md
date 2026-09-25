@@ -51,7 +51,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Quick note:** I reproduced this authorised WebVerse lab on 2 September 2026, using one fresh instance for the Caido steps and another for the Terminal steps. The commands therefore use `<CAIDO_LAB_HOST>` and `<TERMINAL_LAB_HOST>`. Passwords, session cookies, and challenge flags are redacted. Temporary hostnames and file paths remain visible because they make it easier to follow which steps belong to each run.
+> **Quick note:** Knockdown was reproduced on 2 September 2026 in two fresh WebVerse instances, one for the Caido steps and another for the Terminal steps. The commands therefore use `<CAIDO_LAB_HOST>` and `<TERMINAL_LAB_HOST>`. Passwords, session cookies, and challenge flags are redacted. Temporary hostnames and file paths remain visible because they make it easier to follow which steps belong to each run.
 
 ## Executive Summary
 

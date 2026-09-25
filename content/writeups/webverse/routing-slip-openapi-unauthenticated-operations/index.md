@@ -48,7 +48,7 @@ methods:
   - "Browser Runtime Validation"
 ---
 
-> **Publication note:** This article documents a fresh reproduction in an authorised WebVerse educational lab. The instance hostname, dynamic runtime values, and objective value are excluded. The documented lab route `/_ops/echo` is retained because it is required to preserve the public evidence chain. The public objective representation is `WEBVERSE{REDACTED}`.
+> **Lab note:** Routing Slip was reproduced in a fresh authorised WebVerse lab. The instance hostname, changing runtime values, and objective value are not included. The `/_ops/echo` route stays visible because it is needed to follow the evidence chain. The objective appears as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 

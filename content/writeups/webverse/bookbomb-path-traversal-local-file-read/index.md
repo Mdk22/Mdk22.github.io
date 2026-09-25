@@ -48,7 +48,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 20 August 2026. Session values and the literal challenge proof are redacted. Public requests use `<LAB_HOST>`. The temporary lab hostname remains visible in some screenshots because it provides useful request context and is not a reusable secret.
+> **Lab note:** BookBomb was reproduced on 20 August 2026 in an authorised WebVerse lab. Session values and the literal challenge proof are redacted. Public requests use `<LAB_HOST>`. The temporary hostname stays visible in some screenshots because it helps match the requests and is not a reusable secret.
 
 ## Executive Summary
 
@@ -111,10 +111,10 @@ Stop
 I stayed inside the authorised BookBomb lab and used the public book and download flow.
 
 - No account or authenticated session was needed.
-- The literal objective is removed from the article and from the public asset set.
+- The literal objective is removed from the write-up and from the public asset set.
 - The final Caido response screenshot and final terminal screenshot remain private because both contain the literal objective. Their requests, redacted response markers, and the solved-state screen are included here.
 - Several parent-directory depths were tried while locating the objective. The failed requests add no new proof, so the public reproduction keeps only the working path and notes that the depth was adjusted during validation.
-- A planned request for `../download.php` was not sent. This article does not claim PHP source disclosure.
+- A planned request for `../download.php` was not sent. This write-up does not claim PHP source disclosure.
 - The tests confirm local file reads for the shown CSS and objective paths. They do not confirm directory listing, file writes, PHP inclusion, code execution, or access to other sensitive files.
 - The exact server-side implementation was not retrieved. The root-cause section describes the behavior shown by the requests, not a claim about unseen source code.
 
@@ -169,7 +169,7 @@ Content-Length: 9000
 
 ### Step 2: Map the Normal Download Flow
 
-I opened the Frankenstein detail page instead of guessing the download route.
+Opening the Frankenstein detail page avoided guessing the download route.
 
 ```http
 GET /book.php?id=frankenstein HTTP/1.1
@@ -205,7 +205,7 @@ The response contains two legitimate download links:
 
 ### Step 3: Record the Known-Good Download
 
-I clicked the Plain Text option and kept the generated request unchanged.
+The Plain Text option generated the next request, which I kept unchanged.
 
 ```http
 GET /download.php?download=frankenstein.txt HTTP/1.1
@@ -242,7 +242,7 @@ by Mary Wollstonecraft Shelley
 
 ### Step 4: Send a Missing-File Control
 
-I moved the request to Replay and changed only the filename.
+In Replay, I changed only the filename.
 
 ```http
 GET /download.php?download=bookbomb_missing_20260820.txt HTTP/1.1
@@ -269,7 +269,7 @@ File not found: bookbomb_missing_20260820.txt
 
 ### Step 5: Check the Dot-Relative Form
 
-I replaced the missing name with `./frankenstein.txt`.
+Next, the missing name was replaced with `./frankenstein.txt`.
 
 ```http
 GET /download.php?download=./frankenstein.txt HTTP/1.1

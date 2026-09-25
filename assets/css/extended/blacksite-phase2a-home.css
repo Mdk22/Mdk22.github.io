@@ -243,6 +243,17 @@
     text-transform: uppercase;
 }
 
+.bs2-profile-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    margin-top: 19px;
+}
+
+.bs2-profile-links .bs2-source {
+    margin-top: 0;
+}
+
 .bs2-source:hover {
     color: var(--blacksite-cyan);
 }

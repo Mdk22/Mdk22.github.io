@@ -1,6 +1,6 @@
 ---
 title: "Security Patterns"
-description: "Practical recurring security patterns connected to reproduced case evidence."
+description: "Security patterns seen across the published case files."
 ---
 
-This registry groups recurring security conditions observed in the published case files. Pattern pages stay tied to the archive evidence and link back to the formal CWE classifications and validation methods used in each reproduction.
+This section groups recurring security conditions found in the published cases. Each pattern links back to the relevant CWE classifications, testing methods, and case files.

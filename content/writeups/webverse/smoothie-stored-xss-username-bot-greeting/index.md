@@ -47,7 +47,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Quick note:** I reproduced this authorised WebVerse lab on 10 September 2026 with Caido and Chromium. The temporary hostname remains visible because it keeps the screenshots easy to follow. Passwords, session cookies, and the challenge flag are redacted. A new lab instance will have a different hostname, so replace `<LAB_HOST>` and `<INSTANCE_ID>` in the examples before using them.
+> **Quick note:** Smoothie was reproduced on 10 September 2026 with Caido and Chromium. The temporary hostname remains visible because it keeps the screenshots easy to follow. Passwords, session cookies, and the challenge flag are redacted. A new lab instance will have a different hostname, so replace `<LAB_HOST>` and `<INSTANCE_ID>` in the examples before using them.
 
 ## Executive Summary
 

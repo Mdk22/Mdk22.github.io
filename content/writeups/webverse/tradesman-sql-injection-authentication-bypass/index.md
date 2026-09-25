@@ -47,7 +47,7 @@ methods:
   - "Independent curl Verification"
 ---
 
-> **Publication note:** This article documents a fresh reproduction in an authorized WebVerse educational lab. The temporary host, fixed invalid test password, reusable session values, local cookie-jar path, and private raw artifacts are excluded. The current lab objective is represented publicly as `WEBVERSE{REDACTED}`.
+> **Lab note:** Tradesman was reproduced in a fresh authorized WebVerse lab. The temporary host, fixed invalid test password, reusable session values, local cookie-jar path, and private raw artifacts are not included. The lab objective is shown as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 

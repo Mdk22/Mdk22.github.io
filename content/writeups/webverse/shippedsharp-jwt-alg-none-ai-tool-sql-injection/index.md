@@ -57,7 +57,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 24 August 2026. Caido and Terminal used separate fresh instances. Commands use `<CAIDO_LAB_HOST>` or `<TERMINAL_LAB_HOST>`, reusable session values are shown as `<REDACTED>`, and the challenge proof is shown as `WEBVERSE{REDACTED}`. Temporary lab hostnames remain visible in screenshots because they give useful request context and are not reusable secrets.
+> **Lab note:** ShippedSharp was reproduced on 24 August 2026 in two fresh WebVerse instances, one for Caido and one for Terminal. Commands use `<CAIDO_LAB_HOST>` or `<TERMINAL_LAB_HOST>`. Reusable session values appear as `<REDACTED>`, and the challenge proof appears as `WEBVERSE{REDACTED}`. Temporary hostnames stay visible in screenshots because they help match each request to its run and are not reusable secrets.
 
 ## Executive Summary
 
@@ -124,7 +124,7 @@ Solved state
 
 ## 2. Scope and Evidence Limits
 
-I stayed inside the authorised ShippedSharp lab and stopped after the objective was confirmed.
+Testing stayed inside the authorised ShippedSharp lab and stopped after the objective was confirmed.
 
 - Caido and Terminal used different fresh instances. Their temporary hostnames, account data, JWTs, and objective values are expected to differ.
 - The JWT change was done offline. I kept the original signed member token as the control and changed only `alg` and `role` in the second token.
@@ -825,4 +825,4 @@ The work does not confirm database writes, authentication as another real user, 
 
 ShippedSharp needed two separate checks to explain the full result. The first was the authorization difference: a signed member JWT received `403`, while an unsigned token with `role: admin` received `200` from the same route. The second was the report-tool difference: a normal metric stayed inside a quoted value, while the UNION payload changed the query and returned SQLite rows.
 
-Keeping those controls in the article matters more than the final flag. They show where each boundary failed, how the two weaknesses connect, and which claims the evidence does not support. Caido records the full discovery path, while the second fresh Terminal instance confirms the important requests without relying on the original proxy session.
+Keeping those controls in the write-up matters more than the final flag. They show where each boundary failed, how the two weaknesses connect, and which claims the evidence does not support. Caido records the full discovery path, while the second fresh Terminal instance confirms the important requests without relying on the original proxy session.

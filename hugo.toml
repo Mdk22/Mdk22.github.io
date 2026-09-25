@@ -40,11 +40,15 @@ buildExpired = false
 
 [params.schema]
   publisherType = "Person"
-  sameAs = ["https://github.com/Mdk22"]
+  sameAs = ["https://github.com/Mdk22", "https://www.linkedin.com/in/matija-maresi%C4%87-7a1b48314/"]
 
 [[params.socialIcons]]
   name = "github"
   url = "https://github.com/Mdk22"
+
+[[params.socialIcons]]
+  name = "linkedin"
+  url = "https://www.linkedin.com/in/matija-maresi%C4%87-7a1b48314/"
 [caches]
   [caches.images]
     dir = ':cacheDir/images'

@@ -53,7 +53,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article covers an authorized lab reproduction completed on 3 August 2026. The temporary host, reusable cookies, private file paths, and literal flag are not published. The public result is shown as `WEBVERSE{REDACTED}`.
+> **Lab note:** DropCall was reproduced on 3 August 2026 in an authorized lab. The temporary host, reusable cookies, private file paths, and literal flag are not published. The public result appears as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 
@@ -111,7 +111,7 @@ The screenshots are primary evidence for the observable request/response chain. 
 
 ## 3. Step-by-Step Reproduction
 
-This section keeps every control, payload, expected HTTP result, screenshot, and conclusion beside the step where it was used. Temporary hosts, reusable cookies, the literal flag, local command, and private file paths are not published. No `curl` command was run, so the article does not invent one afterward.
+This section keeps every control, payload, expected HTTP result, screenshot, and conclusion beside the step where it was used. Temporary hosts, reusable cookies, the literal flag, local command, and private file paths are not published. No `curl` command was run, so the write-up does not add one afterward.
 
 ### 3.1 P-01 / P-02: Normal and Benign-Negative Baselines
 

@@ -58,7 +58,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 17 August 2026. Cookie and session values are redacted, and the objective is shown as `WEBVERSE{REDACTED}`. Temporary lab hostnames remain visible in screenshots where they help preserve the request context.
+> **Lab note:** Lumenex was reproduced on 17 August 2026 in an authorised WebVerse lab. Cookie and session values are redacted, and the objective appears as `WEBVERSE{REDACTED}`. Temporary hostnames stay visible in screenshots where they help explain the request flow.
 
 ## Executive Summary
 
@@ -300,7 +300,7 @@ I submitted the recovered objective. WebVerse accepted it, and testing stopped.
 
 ### 3.2 Terminal/CLI Reproduction
 
-I repeated the same path with `curl` and `jq`. These requests do not depend on a browser cookie or proxy-added header. Replace `<LAB_ORIGIN>` with the current lab origin.
+The Terminal track repeated the same path with `curl` and `jq`. These requests do not depend on a browser cookie or proxy-added header. Replace `<LAB_ORIGIN>` with the current lab origin.
 
 #### Step 1: Save the Products Page
 

@@ -47,7 +47,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article covers a fresh reproduction in an authorized WebVerse lab. Temporary hostnames, credentials, sessions, test-account names, and the literal flag are excluded. The public version uses `WEBVERSE{REDACTED}`. The SQL checks and metadata payloads were reproduced, but the final query containing the secret remains private.
+> **Lab note:** Bothered was reproduced in a fresh authorized WebVerse lab. Temporary hostnames, credentials, sessions, test-account names, and the literal flag are not included. The public version uses `WEBVERSE{REDACTED}`. The SQL checks and metadata payloads remain visible, but the final query containing the secret stays private.
 
 ## Executive Summary
 
@@ -218,7 +218,7 @@ mmp' UNION SELECT 0,GROUP_CONCAT(name),NOW() FROM config #
 
 ### 3.8 P-06: Targeted Flag Read
 
-The three-column projection was limited to the confirmed `config` table and the `site_flag` key. The final selector and literal flag remain private, so the article does not publish a reusable secret-bearing query.
+The three-column projection was limited to the confirmed `config` table and the `site_flag` key. The final selector and literal flag remain private, so the write-up does not publish a reusable query containing the secret.
 
 **Expected result:** one value appears in the existing Message field and matches the WebVerse objective format. Its public representation is `WEBVERSE{REDACTED}`.
 

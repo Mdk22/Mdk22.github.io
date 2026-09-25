@@ -59,7 +59,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article covers an authorized lab reproduction. The flag is shown as `WEBVERSE{REDACTED}`, temporary hosts use `<LAB_HOST>`, and sessions and private raw evidence are not published.
+> **Lab note:** Front Matter was reproduced in an authorized lab. The flag appears as `WEBVERSE{REDACTED}`, temporary hosts use `<LAB_HOST>`, and sessions and private raw evidence are not published.
 
 ## Executive Summary
 
@@ -390,5 +390,5 @@ CONFIRMED - A production HTML comment disclosed an internal route that was exter
 | Caido storefront request/response | Current-host baseline and public `/colophon` route. |
 | Caido Colophon request/response | Production HTML comment and exact internal route disclosure. |
 | Caido Replay request/response | Anonymous access to `/api/internal/build` and sensitive response. |
-| Private raw HTTP response | Full flag verification; the public article shows it as `WEBVERSE{REDACTED}`. |
+| Private raw HTTP response | Full flag verification; the public write-up shows it as `WEBVERSE{REDACTED}`. |
 | `Front_Matter.png` | WebVerse solved-state confirmation. |

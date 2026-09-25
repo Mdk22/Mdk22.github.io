@@ -72,7 +72,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article covers a fresh reproduction in an authorized WebVerse lab. The recovered password and digest are omitted, session cookies are redacted, and the flag is shown as `WEBVERSE{REDACTED}`. Copyable requests use placeholders for temporary host, session, object, and secret values.
+> **Lab note:** Nolic was reproduced in a fresh authorized WebVerse lab. The recovered password and digest are not included, session cookies are redacted, and the flag appears as `WEBVERSE{REDACTED}`. Copyable requests use placeholders for temporary host, session, object, and secret values.
 
 ## Executive Summary
 
@@ -221,7 +221,7 @@ python3 Nolic_EV06_Offline_SHA256_Recovery.py
 
 **Figure 5: Offline verification.** A match occurred after 26 candidates and the recovered password was eight bytes long. Digest shape alone was not treated as proof of SHA-256; reproducing the stored value with an actual candidate match confirmed the algorithm and supports CWE-916.
 
-#### Step 4: Authentication and Session Establishment
+#### Step 4: Authentication and Session Setup
 
 I logged in once with the recovered credential.
 
@@ -402,7 +402,7 @@ I submitted the recovered value to WebVerse. The platform accepted it and marked
 
 ### 3.2 Terminal/CLI Reproduction
 
-I repeated the chain from a clean terminal session with `curl`, `grep`, `jq`, and Python. Replace `<LAB_IP>` with the current instance IP. The public commands also replace the recovered password, digest, and session value with placeholders.
+The Terminal track repeated the chain from a clean session with `curl`, `grep`, `jq`, and Python. Replace `<LAB_IP>` with the current instance IP. The public commands also replace the recovered password, digest, and session value with placeholders.
 
 The application had no separate terminal preview route. For the rendering checks, I briefly changed the saved draft to `published`, read the public result, and restored it to `draft` before starting the next test. The restoration script compared every field with the original snapshot.
 
@@ -453,7 +453,7 @@ curl -sS -D - \
 
 #### Step 2: Check the Backup and Recover the Password Offline
 
-The SQL dump contained an `admin_users` record. The command is included, but the stored digest and recovered password are not repeated in the public article.
+The SQL dump contained an `admin_users` record. The command is included, but the stored digest and recovered password are not repeated in the public write-up.
 
 ```bash
 grep -nEi \
@@ -674,7 +674,7 @@ curl -sS \
 
 **Figure 30: Command result.** The rendered page contains `58597` and not the raw payload. This confirms the move from Smarty evaluation to OS command execution.
 
-I ran the same restore and verification helpers before continuing.
+The same restore and verification helpers ran before the next step.
 
 ![Terminal verifier confirming restoration after the command execution test](Nolic_Terminal_17_RCE_Restoration.png)
 

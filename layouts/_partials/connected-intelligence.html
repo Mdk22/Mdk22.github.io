@@ -11,8 +11,8 @@
 <section class="bsci" aria-labelledby="bsci-title">
     <header class="bsci__header">
         <div>
-            <span class="bsci__kicker">Case classification matrix</span>
-            <h2 id="bsci-title">Connected Intelligence</h2>
+            <span class="bsci__kicker">Case classification</span>
+            <h2 id="bsci-title">Case Connections</h2>
         </div>
         <span class="bsci__case-id">{{ .Params.case_id }}</span>
     </header>
@@ -66,7 +66,7 @@
 
         {{- with .Params.methods }}
         <section class="bsci__block" aria-labelledby="bsci-methods-title">
-            <span class="bsci__label" id="bsci-methods-title">Validation methodology</span>
+            <span class="bsci__label" id="bsci-methods-title">Validation methods</span>
             <div class="bsci__terms bsci__terms--methods">
                 {{- range . }}
                 {{- $termSlug := . | urlize -}}

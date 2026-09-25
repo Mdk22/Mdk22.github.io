@@ -30,7 +30,7 @@
 
 <div class="bs2-home">
     {{- if gt $publishedCount 0 }}
-    <section class="bs2-status" aria-label="Archive operational status">
+    <section class="bs2-status" aria-label="Archive status">
         <div class="bs2-status__item"><span class="bs2-status__label">Archive status</span><strong class="bs2-status__value bs2-status__value--active">Active</strong></div>
         <div class="bs2-status__item"><span class="bs2-status__label">Published cases</span><strong class="bs2-status__value">{{ printf "%02d" $publishedCount }}</strong></div>
         <div class="bs2-status__item"><span class="bs2-status__label">Primary platform</span><strong class="bs2-status__value">WebVerse</strong></div>
@@ -44,10 +44,13 @@
         <p class="bs2-hero__lead">Step-by-step security write-ups with the requests, responses, screenshots, commands, payloads, impact, and fixes from authorized training labs.</p>
         <div class="bs2-actions" aria-label="Homepage actions">
             <a class="bs2-button bs2-button--primary" href="{{ "/archive/" | relURL }}">Browse full archive</a>
-            <a class="bs2-button" href="#research-paths">Explore intelligence</a>
+            <a class="bs2-button" href="#research-paths">Explore case links</a>
             <a class="bs2-button" href="{{ "/disclosure-policy/" | relURL }}">Disclosure policy</a>
         </div>
-        <a class="bs2-source" href="https://github.com/Mdk22/Mdk22.github.io" target="_blank" rel="noopener noreferrer">View source repository / GitHub</a>
+        <div class="bs2-profile-links">
+            <a class="bs2-source" href="https://github.com/Mdk22/Mdk22.github.io" target="_blank" rel="noopener noreferrer">View source repository / GitHub</a>
+            <a class="bs2-source" href="https://www.linkedin.com/in/matija-maresi%C4%87-7a1b48314/" target="_blank" rel="noopener noreferrer me">Connect on LinkedIn</a>
+        </div>
     </section>
 
     <section class="bs2-latest" aria-labelledby="bs2-latest-title">
@@ -69,9 +72,9 @@
     <section id="research-paths" class="bs2-paths" aria-labelledby="bs2-paths-title">
         <div class="bs2-section-heading"><div><span class="bs2-kicker">Explore the archive</span><h2 id="bs2-paths-title">Learn from connected cases</h2></div></div>
         <div class="bs2-path-grid">
-            <a class="bs2-path" href="{{ "/cwes/" | relURL }}"><span>Root-cause taxonomy</span><strong>CWE Intelligence</strong><p>Trace each case to its primary weakness and related case history.</p><small>{{ printf "%02d" $cweCount }} tracked CWEs →</small></a>
+            <a class="bs2-path" href="{{ "/cwes/" | relURL }}"><span>Root-cause classification</span><strong>CWE index</strong><p>Trace each case to its primary weakness and related case history.</p><small>{{ printf "%02d" $cweCount }} tracked CWEs →</small></a>
             <a class="bs2-path" href="{{ "/patterns/" | relURL }}"><span>Observed behavior</span><strong>Attack patterns</strong><p>Compare vulnerability patterns that appear across published cases.</p><small>{{ printf "%02d" $patternCount }} documented patterns →</small></a>
-            <a class="bs2-path" href="{{ "/methods/" | relURL }}"><span>How the cases were tested</span><strong>Research methods</strong><p>See which checks turned an initial lead into a confirmed finding.</p><small>{{ printf "%02d" $methodCount }} documented methods →</small></a>
+            <a class="bs2-path" href="{{ "/methods/" | relURL }}"><span>How the cases were tested</span><strong>Testing methods</strong><p>See which checks turned an initial lead into a confirmed finding.</p><small>{{ printf "%02d" $methodCount }} documented methods →</small></a>
         </div>
     </section>
 
@@ -80,7 +83,7 @@
         <div class="bs2-stat-grid"><div class="bs2-stat"><strong>{{ printf "%02d" $publishedCount }}</strong><span>Published case files</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $verifiedCount }}</strong><span>Reproduced findings</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $caidoCount }}</strong><span>Cases using Caido</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $curlCount }}</strong><span>curl reproductions</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $clientCount }}</strong><span>Client-side injection cases</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $accessCount }}</strong><span>Access / exposure cases</span></div><div class="bs2-stat"><strong>{{ printf "%02d" $serverCount }}</strong><span>Server-side injection cases</span></div></div>
     </section>
 
-    <section class="bs2-notice" aria-labelledby="bs2-notice-title"><div class="bs2-notice__marker" aria-hidden="true">AUTHORIZED</div><div><h2 id="bs2-notice-title">Authorized research environments only</h2><p>All documented testing was performed in authorized educational labs or purpose-built training environments. Flags, credentials, tokens, and reusable secrets are redacted before publication.</p></div><a href="{{ "/about/" | relURL }}">Research scope</a></section>
+    <section class="bs2-notice" aria-labelledby="bs2-notice-title"><div class="bs2-notice__marker" aria-hidden="true">AUTHORIZED</div><div><h2 id="bs2-notice-title">Authorized testing environments only</h2><p>All documented testing was performed in authorized educational labs or purpose-built training environments. Flags, credentials, tokens, and reusable secrets are redacted before publication.</p></div><a href="{{ "/about/" | relURL }}">Testing scope</a></section>
     {{- else }}
     <section class="bs2-empty"><h1>Mdk22 Security Write-Ups</h1><p>No published case files are currently available.</p></section>
     {{- end }}

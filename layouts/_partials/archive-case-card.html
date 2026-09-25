@@ -15,7 +15,7 @@
         <p class="bs2-case-card__status">{{ $case.Params.case_status }}</p>
         <h3><a href="{{ $case.RelPermalink }}">{{ $case.Params.lab }}</a></h3>
         <p class="bs2-case-card__class">{{ $case.Params.case_classification }}</p>
-        <div class="bs2-case-card__intel" aria-label="Case intelligence summary">
+        <div class="bs2-case-card__intel" aria-label="Case classification summary">
             <div class="bs2-case-card__intel-row">
                 <span>Primary CWE</span>
                 <div>{{ with $primaryPage }}<a href="{{ .RelPermalink }}">{{ .Params.cwe_id }}</a>{{ end }}</div>

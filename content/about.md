@@ -19,7 +19,7 @@ I currently hold a CCNA training certificate from a professional institution. Ea
 
 ## Why This Blog Exists
 
-Mdk22 Security Write-Ups started as a way to keep my learning methodology, technical notes, reproduced findings, and practical evidence in one organised archive. Each article records what I tested, how I tested it, which controls I used, what the result proved, and where the evidence stopped.
+Mdk22 Security Write-Ups started as a way to keep my learning methodology, technical notes, reproduced findings, and practical evidence in one organised archive. Each write-up records what I tested, how I tested it, which controls I used, what the result proved, and where the evidence stopped.
 
 The blog is primarily a record of my own progress, but I also want it to be useful to other people learning web security. If a request, payload, command, screenshot, or explanation helps someone understand a vulnerability more clearly, then the archive is doing more than simply storing my notes.
 
@@ -41,6 +41,6 @@ The write-ups focus on:
 - Commands, payloads, and reproducible testing steps
 - Remediation guidance
 
-All research published here comes from authorised educational labs and training environments built for testing. The site does not document unauthorised testing against production systems or third-party users.
+All work published here comes from authorised educational labs and training environments built for testing. The site does not document unauthorised testing against production systems or third-party users.
 
-The public source for the blog is available in the [Mdk22.github.io repository](https://github.com/Mdk22/Mdk22.github.io).
+The public source for the blog is available in the [Mdk22.github.io repository](https://github.com/Mdk22/Mdk22.github.io). You can also find me on [LinkedIn](https://www.linkedin.com/in/matija-maresi%C4%87-7a1b48314/).

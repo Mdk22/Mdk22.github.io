@@ -53,7 +53,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 18 August 2026. Reusable sessions, credentials, and literal challenge proofs are redacted. Temporary lab hostnames remain in screenshots where they make the request flow easier to follow. The Caido and CLI-assisted tracks used separate fresh instances.
+> **Lab note:** Owners was reproduced on 18 August 2026 in two fresh WebVerse instances, one for the Caido track and one for the CLI-assisted track. Reusable sessions, credentials, and literal challenge proofs are redacted. Temporary hostnames stay in screenshots where they make the request flow easier to follow.
 
 ## Executive Summary
 
@@ -101,7 +101,7 @@ Stop
 
 ## 2. Scope and Evidence Limits
 
-I used two fresh Owners instances. The Caido track produced the accepted solved state. I then repeated the chain on a separate instance for the CLI-assisted track.
+Two fresh Owners instances kept the runs separate. The Caido track produced the accepted solved state, and a second instance was used for the CLI-assisted track.
 
 - I did not extract a staff cookie, password, bearer token, or reusable credential. The authenticated browser kept its own session.
 - The server-side reader checked only two environment variables and eight fixed challenge paths.
@@ -111,7 +111,7 @@ I used two fresh Owners instances. The Caido track produced the accepted solved 
 
 ## 3. Evidence-Led Chronological Reproduction
 
-I kept the reproduction in the order I tested it. Each step starts with the request or command and ends with the response or callback that guided the next step.
+The reproduction stays in the order it was tested. Each step starts with the request or command and ends with the response or callback that guided the next step.
 
 1. Map the public contact form, protected staff routes, and stylesheet clue.
 2. Record a harmless contact submission.
@@ -231,7 +231,7 @@ prepare_payload() {
 }
 ```
 
-I deployed it through the HTTPS Interact payload endpoint and stored its HTTP script URL in the contact message.
+Deployment used the HTTPS Interact payload endpoint. Its HTTP script URL was then stored in the contact message.
 
 ```http
 POST /__deploy_payload__ HTTP/1.1
@@ -589,7 +589,7 @@ WebVerse displayed `Challenge Solved` and `Flag accepted`. I did not send furthe
 
 ## 5. Terminal/CLI Reproduction
 
-I repeated the chain on a separate fresh instance. `curl` covered the public requests, triggers, and public file readback. The authenticated avatar upload still ran in the staff browser because I did not take its session.
+The CLI-assisted track used a separate fresh instance. `curl` covered the public requests, triggers, and public file readback. The authenticated avatar upload still ran in the staff browser because I did not take its session.
 
 The Terminal/CLI run used the same browser-side logic as the Caido/Burp run. Only the payload names, guards, callback paths, and probe filenames changed to the `owners-cli-*` set recorded in the second Interact registry. Every step below includes its complete script in the collapsed Interact block.
 

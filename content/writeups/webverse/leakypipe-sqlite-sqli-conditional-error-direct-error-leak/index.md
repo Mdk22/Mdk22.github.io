@@ -48,7 +48,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents a fresh reproduction in an authorized WebVerse educational lab. Current hostnames, session values, application paths, objective material, and secret-equivalent HEX are excluded. The public objective representation is `WEBVERSE{REDACTED}`.
+> **Lab note:** LeakyPipe was reproduced in a fresh authorized WebVerse lab. Current hostnames, session values, application paths, objective material, and secret-equivalent HEX are not included. The objective appears as `WEBVERSE{REDACTED}`.
 
 ## Executive Summary
 
@@ -387,7 +387,7 @@ Input:  <OBJECTIVE_HEX_REDACTED>
 Output: WEBVERSE{REDACTED}
 ```
 
-Expected result: local HEX decoding confirms the complete WebVerse objective form. The objective-derived HEX and literal remain excluded from the public article.
+Expected result: local HEX decoding confirms the complete WebVerse objective form. The objective-derived HEX and literal remain excluded from the public write-up.
 
 ![Caido Convert showing redacted objective decoding](LeakyPipe_Figure_10.png)
 

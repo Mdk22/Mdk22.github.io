@@ -56,7 +56,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 15 August 2026. The live hostname is represented as `<LAB_HOST>`, and the current objective is represented as `WEBVERSE{REDACTED}`. No credential, reusable session material, private path, or post-objective target request is published.
+> **Lab note:** Margin Notes was reproduced on 15 August 2026 in an authorised WebVerse lab. The live hostname appears as `<LAB_HOST>`, and the current objective appears as `WEBVERSE{REDACTED}`. Credentials, reusable session material, private paths, and post-objective target requests are not published.
 
 ## Executive Summary
 

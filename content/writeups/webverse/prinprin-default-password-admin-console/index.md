@@ -51,7 +51,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents an authorised WebVerse educational lab reproduced on 21 August 2026. Caido and Terminal used separate fresh instances. Requests use `<LAB_HOST>`, session values use `<REDACTED>`, and the challenge proof is shown as `WEBVERSE{REDACTED}`. Temporary lab hostnames remain visible in the screenshots because they provide request context and are not reusable secrets.
+> **Lab note:** PrinPrin was reproduced on 21 August 2026 in two fresh WebVerse instances, one for Caido and one for Terminal. Requests use `<LAB_HOST>`, session values use `<REDACTED>`, and the challenge proof appears as `WEBVERSE{REDACTED}`. Temporary hostnames stay visible in screenshots because they provide request context and are not reusable secrets.
 
 ## Executive Summary
 
@@ -106,7 +106,7 @@ Stop
 
 I stayed inside the authorised PrinPrin lab and stopped after the objective was confirmed.
 
-- PrinPrin is a WebVerse training simulation. This article does not report a vulnerability in a real printer model or vendor product.
+- PrinPrin is a WebVerse training simulation. This write-up does not report a vulnerability in a real printer model or vendor product.
 - The Caido and Terminal screenshots come from two different fresh instances. Their temporary hostnames are expected to differ.
 - The successful Caido `302` response did not include a new `Set-Cookie` header. I therefore do not claim that the login issued a new session. The request already carried `pp_sid`, and the same session reached the dashboard after authentication.
 - Session values and both literal flags are removed from the public images.

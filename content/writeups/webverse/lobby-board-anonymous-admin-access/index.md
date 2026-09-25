@@ -58,7 +58,7 @@ methods:
   - "Independent curl Verification"
 ---
 
-> **Publication note:** This article covers an authorized lab reproduction. The flag is shown as `WEBVERSE{REDACTED}`. Session cookies, clearance values, and raw secret-bearing evidence are not published.
+> **Lab note:** Lobby Board was reproduced in an authorized lab. The flag appears as `WEBVERSE{REDACTED}`. Session cookies, clearance values, and raw evidence containing secrets are not published.
 
 ## Executive Summary
 

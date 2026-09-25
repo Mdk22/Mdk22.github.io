@@ -13,7 +13,7 @@
 <div class="bsintel bsintel--term">
     {{- partial "breadcrumbs.html" $page }}
     <header class="bsintel-term-hero">
-        <span class="bscwe-kicker">{{ if eq $kind "pattern" }}Security pattern{{ else }}Validation method{{ end }} / archive intelligence</span>
+        <span class="bscwe-kicker">{{ if eq $kind "pattern" }}Security pattern{{ else }}Validation method{{ end }} / case archive</span>
         <h1>{{ $page.Title }}</h1>
         <p>{{ if eq $kind "pattern" }}{{ $page.Params.definition }}{{ else }}{{ $page.Params.purpose }}{{ end }}</p>
     </header>
@@ -30,7 +30,7 @@
     </section>
 
     <section class="bsintel-associations" aria-labelledby="bsintel-associations-title">
-        <div class="bscwe-section-heading"><div><span class="bscwe-kicker">Cross-classification</span><h2 id="bsintel-associations-title">Associated intelligence</h2></div></div>
+        <div class="bscwe-section-heading"><div><span class="bscwe-kicker">Related classifications</span><h2 id="bsintel-associations-title">Related entries</h2></div></div>
         <div class="bsintel-association-grid">
             <div><span>Associated CWEs</span><div>{{ range $cwes }}{{ $slug := . | urlize }}{{ with site.GetPage (printf "/cwes/%s" $slug) }}<a href="{{ .RelPermalink }}">{{ .Params.cwe_id }}</a>{{ end }}{{ end }}</div></div>
             <div><span>{{ if eq $kind "pattern" }}Associated methods{{ else }}Associated patterns{{ end }}</span><div>{{ range $related }}{{ $slug := . | urlize }}{{ $base := cond (eq $kind "pattern") "methods" "patterns" }}{{ with site.GetPage (printf "/%s/%s" $base $slug) }}<a href="{{ .RelPermalink }}">{{ .Title }}</a>{{ end }}{{ end }}</div></div>

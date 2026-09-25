@@ -51,7 +51,7 @@ methods:
   - "Authoritative Status Check"
 ---
 
-> **Publication note:** This article documents a fresh reproduction in an authorised WebVerse educational lab. The live hostname, reusable session material, and literal objective are excluded. Public evidence uses `<LAB_HOST>`, `<LAB_ORIGIN>`, and `WEBVERSE{REDACTED}`. The solved-state interface retains the account's earlier solve date and is not presented as the timestamp of this reproduction.
+> **Lab note:** Flap Copy was reproduced in a fresh authorised WebVerse lab. The live hostname, reusable session material, and literal objective are not included. Public evidence uses `<LAB_HOST>`, `<LAB_ORIGIN>`, and `WEBVERSE{REDACTED}`. The solved screen keeps the account's earlier solve date, so it is not the date of this reproduction.
 
 ## Executive Summary
 
